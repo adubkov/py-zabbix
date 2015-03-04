@@ -178,9 +178,11 @@ class ZabbixAPI(object):
       'triggerprototype': 'description',
       'mediatype': 'description',
       'user': 'alias',
+      'usermacro': 'macro',
     }
 
     item_id_name = {
+      'usermacro': 'hostmacro',
       'usergroup': 'usrgrp',
       'hostgroup': 'group',
       'discoveryrule': 'item',
