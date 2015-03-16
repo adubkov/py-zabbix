@@ -75,7 +75,7 @@ class ZabbixAPI(object):
   def __init__(self, url='https://localhost/zabbix',
                use_authenticate=False, user='admin', password='zabbix'):
     self.use_authenticate = use_authenticate
-    self.auth = ''
+    self.auth = None
     self.url = url + '/api_jsonrpc.php'
     self.__login(user, password)
     logger.debug("JSON-PRC Server: %s", self.url)
@@ -96,7 +96,7 @@ class ZabbixAPI(object):
     """
     logger.debug("ZabbixAPI.login({0},{1})".format(user, password))
 
-    self.auth = ''
+    self.auth = None
 
     if self.use_authenticate:
       self.auth = self.user.authenticate(user=user, password=password)
