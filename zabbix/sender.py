@@ -229,7 +229,7 @@ class ZabbixSender(object):
 
             try:
                 connection.sendall(packet)
-            except Exception, e:
+            except Exception as e:
                 logger.debug("{0}.send: Error while sending the data to zabbix\nERROR:{1}".format(self.cn, e))
                 connection.close()
                 exit()
