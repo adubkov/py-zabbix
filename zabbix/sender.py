@@ -79,14 +79,11 @@ class ZabbixSender(object):
         if config_file and isinstance(config_file, bool):
             config_file = '/etc/zabbix/zabbix_agentd.conf'
 
-        result = None
-
         try:
             """This is workaround for config wile without sections"""
             with open(config_file, 'r') as f:
                 config_file_data = "[root]\n" + f.read()
         except:
-            result = False
             exit()
 
         config_file_fp = StringIO.StringIO(config_file_data)
@@ -183,7 +180,6 @@ class ZabbixSender(object):
           str: JSON response from zabbix server
         """
 
-        result = None
         response_header = self.__receive(connection, 13)
         logger.debug('{0}.__get_response.response_header: {1}'.format(self.cn, response_header))
 
