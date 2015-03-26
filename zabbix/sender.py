@@ -68,7 +68,8 @@ class ZabbixSender(object):
 
         logger.debug('{0}({1})'.format(self.cn, self.zabbix_uri))
 
-    def __load_from_config(self, config_file):
+    @classmethod
+    def __load_from_config(cls, config_file):
         """
         Load zabbix server ip address and port from zabbix agent file
 
