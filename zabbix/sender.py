@@ -35,7 +35,7 @@ class ZabbixMetric(object):
         """
 
         result = json.dumps(self.__dict__)
-        logger.debug('{0}: {1}'.format(self.__class__.__name__, result))
+        logger.debug('%s: %s', self.__class__.__name__, result)
 
         return result
 
@@ -66,7 +66,7 @@ class ZabbixSender(object):
         else:
             self.zabbix_uri = [(zabbix_server, zabbix_port)]
 
-        logger.debug('{0}({1})'.format(self.cn, self.zabbix_uri))
+        logger.debug('%s(%s)', self.cn, self.zabbix_uri)
 
     @classmethod
     def __load_from_config(cls, config_file):
@@ -135,7 +135,7 @@ class ZabbixSender(object):
         for m in metrics_array:
             metrics.append(str(m))
 
-        logger.debug('{0}.__create_messages: {1}'.format(self.cn, metrics))
+        logger.debug('%s.__create_messages: %s', self.cn, metrics)
 
         return metrics
 
@@ -150,8 +150,8 @@ class ZabbixSender(object):
           str: Formatted request to zabbix
         """
 
-        request = '{{"request":"sender data","data":[{0}]}}'.format(','.join(messages))
-        logger.debug('{0}.__create_request: {1}'.format(self.cn, request))
+        request = '{"request":"sender data","data":[%s]}' % ','.join(messages)
+        logger.debug('%s.__create_request: %s', self.cn, request)
 
         return request
 
@@ -168,9 +168,9 @@ class ZabbixSender(object):
 
         data_len = struct.pack('<Q', len(request))
         packet = 'ZBXD\x01' + data_len + request
-        logger.debug('{0}.__create_packet (str): {1}'.format(self.cn, packet))
-        logger.debug('{0}.__create_packet (hex): {1}'.format(self.cn,
-                                                             ':'.join(x.encode('hex') for x in packet)))
+        logger.debug('%s.__create_packet (str): %s', self.cn, packet)
+        logger.debug('%s.__create_packet (hex): %s', self.cn,
+                     ':'.join(x.encode('hex') for x in packet))
 
         return packet
 
@@ -183,10 +183,10 @@ class ZabbixSender(object):
         """
 
         response_header = self.__receive(connection, 13)
-        logger.debug('{0}.__get_response.response_header: {1}'.format(self.cn, response_header))
+        logger.debug('%s.__get_response.response_header: %s', self.cn, response_header)
 
         if not response_header.startswith('ZBXD\x01') or len(response_header) != 13:
-            logger.debug('{0}.__get_response: Wrong zabbix response'.format(self.cn))
+            logger.debug('%s.__get_response: Wrong zabbix response', self.cn)
             result = False
         else:
             response_len = struct.unpack('<Q', response_header[5:])[0]
@@ -197,7 +197,7 @@ class ZabbixSender(object):
                 connection.close()
 
             result = json.loads(response_body)
-            logger.debug('{0}.__get_response: {1}'.format(self.cn, result))
+            logger.debug('%s.__get_response: %s', self.cn, result)
 
         return result
 
@@ -219,7 +219,7 @@ class ZabbixSender(object):
         packet = self.__create_packet(request)
 
         for host_addr in self.zabbix_uri:
-            logger.debug('{0}.send({1}): connecting'.format(self.cn, host_addr))
+            logger.debug('%s.send(%s): connecting', self.cn, host_addr)
 
             # create socket object
             connection = socket.socket()
@@ -230,18 +230,18 @@ class ZabbixSender(object):
             try:
                 connection.sendall(packet)
             except Exception as e:
-                logger.debug("{0}.send: Error while sending the data to zabbix\nERROR:{1}".format(self.cn, e))
+                logger.debug("%s.send: Error while sending the data to zabbix\nERROR:%s", self.cn, e)
                 connection.close()
                 exit()
 
             # socket will be closed in self._get_response()
             response = self.__get_response(connection)
-            logger.debug('{0}.send({1}): {2}'.format(self.cn, host_addr, response))
+            logger.debug('%s.send(%s): %s', self.cn, host_addr, response)
 
             if response.get('response') == 'success':
                 result = True
             else:
-                logger.debug('{0}.send: Got error from zabbix => {1}'.format(self.cn, response))
+                logger.debug('%s.send: Got error from zabbix => %s}', self.cn, response)
                 raise Exception('Zabbix Server ({0}) reject packet.'.format(host_addr))
 
         return result
