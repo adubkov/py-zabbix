@@ -179,7 +179,7 @@ class ZabbixSender(object):
         Get response from zabbix server, reads from self.socket.
 
         Returns:
-          str: JSON response from zabbix server
+          str: JSON response from zabbix server or False in case of some errors
         """
 
         response_header = self.__receive(connection, 13)
@@ -238,7 +238,7 @@ class ZabbixSender(object):
             response = self.__get_response(connection)
             logger.debug('%s.send(%s): %s', self.cn, host_addr, response)
 
-            if response.get('response') == 'success':
+            if response and response.get('response') == 'success':
                 result = True
             else:
                 logger.debug('%s.send: Got error from zabbix => %s}', self.cn, response)
