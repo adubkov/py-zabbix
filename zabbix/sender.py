@@ -98,7 +98,8 @@ class ZabbixSender(object):
 
         return result
 
-    def __receive(self, socket, count):
+    @classmethod
+    def __receive(cls, socket, count):
         """
         Reads socket to receive data from zabbix server.
 
