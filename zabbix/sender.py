@@ -81,7 +81,7 @@ class ZabbixSender(object):
             config_file = '/etc/zabbix/zabbix_agentd.conf'
 
         try:
-            """This is workaround for config wile without sections"""
+            #  This is workaround for config wile without sections
             with open(config_file, 'r') as f:
                 config_file_data = "[root]\n" + f.read()
         except:
