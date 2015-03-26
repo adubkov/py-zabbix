@@ -191,13 +191,15 @@ class ZabbixSender(object):
         else:
             response_len = struct.unpack('<Q', response_header[5:])[0]
 
-            try:
-                response_body = connection.recv(response_len)
-            finally:
-                connection.close()
+            response_body = connection.recv(response_len)
 
             result = json.loads(response_body)
             logger.debug('%s.__get_response: %s', self.cn, result)
+
+        try:
+            connection.close()
+        except:
+            pass
 
         return result
 
