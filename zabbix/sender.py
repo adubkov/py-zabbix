@@ -73,8 +73,8 @@ class ZabbixSender(object):
         """
         Load zabbix server ip address and port from zabbix agent file
 
-        If Server or Port variable won't be found if the file, they will be
-        seted up from defaults: 127.0.0.1:10051
+        If Server or Port variable won't be found in the file, they will be
+        set up from defaults: 127.0.0.1:10051
         """
 
         if config_file and isinstance(config_file, bool):
@@ -140,13 +140,13 @@ class ZabbixSender(object):
 
     def __create_request(self, messages):
         """
-        Create a formated request to zabbix from a list of messages.
+        Create a formatted request to zabbix from a list of messages.
 
         Attributes:
           messages (list of str): List zabbix messages
 
         Returns:
-          str: Formated request to zabbix
+          str: Formatted request to zabbix
         """
 
         request = '{{"request":"sender data","data":[{0}]}}'.format(','.join(messages))
@@ -156,7 +156,7 @@ class ZabbixSender(object):
 
     def __create_packet(self, request):
         """
-        Create a formated packet from a request.
+        Create a formatted packet from a request.
 
         Attributes:
           request (str): Request string to zabbix
