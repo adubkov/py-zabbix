@@ -99,7 +99,7 @@ class ZabbixSender(object):
         return result
 
     @classmethod
-    def __receive(cls, socket, count):
+    def __receive(cls, sock, count):
         """
         Reads socket to receive data from zabbix server.
 
@@ -111,7 +111,7 @@ class ZabbixSender(object):
         buf = ''
 
         while len(buf) < count:
-            chunk = socket.recv(count - len(buf))
+            chunk = sock.recv(count - len(buf))
             if not chunk:
                 break
             buf += chunk
