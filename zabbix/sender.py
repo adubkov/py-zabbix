@@ -1,251 +1,249 @@
-import base64
 import ConfigParser
 import json
 import logging
 import socket
 import StringIO
 import struct
-import sys
 import time
-import urllib2
 
 logger = logging.getLogger(__name__)
 
-class ZabbixMetric(object):
-  """
-  Create structure contains metric for zabbix server.
 
-  Attributes:
+class ZabbixMetric(object):
+    """
+    Create structure contains metric for zabbix server.
+
+    Attributes:
     host (str): Hostname as it displays in Zabbix.
     key (str):  Key by which you will identify this metric.
     value (*):  Key value.
     clock (int): A timestamp in seconds. If None, then it will current time
 
-  Example:
+    Example:
     >> ZabbixMetric('localhost', 'cpu[usage]', 20)
-  """
-
-  def __init__(self, host, key, value, clock = None):
-    self.host = str(host)
-    self.key = str(key)
-    self.value = str(value)
-    self.clock = clock if clock else str(int(time.time()))
-
-  def __repr__(self):
-    """
-    Represent detailed ZabbixMetric view.
     """
 
-    result = json.dumps(self.__dict__)
-    logger.debug('{0}: {1}'.format(self.__class__.__name__, result))
+    def __init__(self, host, key, value, clock=None):
+        self.host = str(host)
+        self.key = str(key)
+        self.value = str(value)
+        self.clock = clock if clock else str(int(time.time()))
 
-    return result
+    def __repr__(self):
+        """
+        Represent detailed ZabbixMetric view.
+        """
+
+        result = json.dumps(self.__dict__)
+        logger.debug('%s: %s', self.__class__.__name__, result)
+
+        return result
 
 
 class ZabbixSender(object):
-  """
-  Send ZabbixMetrics to Zabbix server, like zabbix_sender util.
-  Implement zabbix trapper protocol.
-
-  Attributes:
-    zabbix_server (str):  IP address of Zabbix server. Default: 127.0.0.1
-
-    zabbix_port (int):    Port of Zabbix server. Default: 10051
-
-    use_config (str):     Specify config file from which zabbix_server
-                          and zabbix_port will be loaded.
-
-                          If True then use default config:
-                            /etc/zabbix/zabbix_agentd.conf
-  """
-
-  def __init__(self, zabbix_server = '127.0.0.1', zabbix_port = 10051, use_config = None):
-
-    self.cn = self.__class__.__name__
-
-    if use_config:
-      self.zabbix_uri = self.__load_from_config(use_config)
-    else:
-      self.zabbix_uri = [ (zabbix_server, zabbix_port) ]
-
-    logger.debug('{0}({1})'.format(self.cn, self.zabbix_uri))
-
-  def __load_from_config(self, config_file):
     """
-    Load zabbix server ip address and port from zabbix agent file
-
-    If Server or Port variable won't be found if the file, they will be
-    seted up from defaults: 127.0.0.1:10051
-    """
-
-    if config_file and isinstance(config_file, bool):
-      config_file = '/etc/zabbix/zabbix_agentd.conf'
-
-    result = None
-
-    try:
-      """This is workaround for config wile without sections"""
-      with open(config_file, 'r') as f:
-        config_file_data = "[root]\n" + f.read()
-    except:
-      result = False
-      exit()
-
-    config_file_fp = StringIO.StringIO(config_file_data)
-    config = ConfigParser.RawConfigParser({'Server':'127.0.0.1', 'Port':10051})
-    config.readfp(config_file_fp)
-    zabbix_server = config.get('root','Server')
-    zabbix_port = config.get('root','Port')
-    zabbix_server_list = [ server.strip() for server in zabbix_server.split(',')]
-
-    result = [ (server, zabbix_port) for server in zabbix_server_list ]
-
-    return result
-
-  def __receive(self, socket, count):
-    """
-    Reads socket to receive data from zabbix server.
+    Send ZabbixMetrics to Zabbix server, like zabbix_sender util.
+    Implement zabbix trapper protocol.
 
     Attributes:
-      socket (socket):  Socket object from which data should be read
-      count (int):  Amount of data that should be read from socket, in bytes.
+      zabbix_server (str):  IP address of Zabbix server. Default: 127.0.0.1
+
+      zabbix_port (int):    Port of Zabbix server. Default: 10051
+
+      use_config (str):     Specify config file from which zabbix_server
+                            and zabbix_port will be loaded.
+
+                            If True then use default config:
+                              /etc/zabbix/zabbix_agentd.conf
     """
 
-    buf = ''
+    def __init__(self, zabbix_server='127.0.0.1', zabbix_port=10051, use_config=None):
 
-    while len(buf) < count:
-      chunk = socket.recv(count - len(buf))
-      if not chunk:
-        break
-      buf += chunk
+        self.cn = self.__class__.__name__
 
-    return buf
+        if use_config:
+            self.zabbix_uri = self.__load_from_config(use_config)
+        else:
+            self.zabbix_uri = [(zabbix_server, zabbix_port)]
 
-  def __create_messages(self, metrics_array):
-    """
-    Create a list of zabbix messages, from a list of ZabbixMetrics.
+        logger.debug('%s(%s)', self.cn, self.zabbix_uri)
 
-    Attributes:
-      metrics_array (list of ZabbixMetrics): List of ZabbixMetrics
+    @classmethod
+    def __load_from_config(cls, config_file):
+        """
+        Load zabbix server ip address and port from zabbix agent file
 
-    Returns:
-      list of str: List of zabbix messages
-    """
+        If Server or Port variable won't be found in the file, they will be
+        set up from defaults: 127.0.0.1:10051
+        """
 
-    metrics = []
+        if config_file and isinstance(config_file, bool):
+            config_file = '/etc/zabbix/zabbix_agentd.conf'
 
-    # Fill the array of messages
-    for m in metrics_array:
-      metrics.append(str(m))
+        try:
+            #  This is workaround for config wile without sections
+            with open(config_file, 'r') as f:
+                config_file_data = "[root]\n" + f.read()
+        except:
+            exit()
 
-    logger.debug('{0}.__create_messages: {1}'.format(self.cn, metrics))
+        config_file_fp = StringIO.StringIO(config_file_data)
+        config = ConfigParser.RawConfigParser({'Server': '127.0.0.1', 'Port': 10051})
+        config.readfp(config_file_fp)
+        zabbix_server = config.get('root', 'Server')
+        zabbix_port = config.get('root', 'Port')
+        zabbix_server_list = [server.strip() for server in zabbix_server.split(',')]
 
-    return metrics
+        result = [(server, zabbix_port) for server in zabbix_server_list]
 
-  def __create_request(self, messages):
-    """
-    Create a formated request to zabbix from a list of messages.
+        return result
 
-    Attributes:
-      messages (list of str): List zabbix messages
+    @classmethod
+    def __receive(cls, sock, count):
+        """
+        Reads socket to receive data from zabbix server.
 
-    Returns:
-      str: Formated request to zabbix
-    """
+        Attributes:
+          socket (socket):  Socket object from which data should be read
+          count (int):  Amount of data that should be read from socket, in bytes.
+        """
 
-    request = '{{"request":"sender data","data":[{0}]}}'.format(','.join(messages))
-    logger.debug('{0}.__create_request: {1}'.format(self.cn, request))
+        buf = ''
 
-    return request
+        while len(buf) < count:
+            chunk = sock.recv(count - len(buf))
+            if not chunk:
+                break
+            buf += chunk
 
-  def __create_packet(self, request):
-    """
-    Create a formated packet from a request.
+        return buf
 
-    Attributes:
-      request (str): Request string to zabbix
+    def __create_messages(self, metrics_array):
+        """
+        Create a list of zabbix messages, from a list of ZabbixMetrics.
 
-    Returns:
-      str: Packet string to zabbix
-    """
+        Attributes:
+          metrics_array (list of ZabbixMetrics): List of ZabbixMetrics
 
-    data_len = struct.pack('<Q', len(request))
-    packet = 'ZBXD\x01'+ data_len + request
-    logger.debug('{0}.__create_packet (str): {1}'.format(self.cn, packet))
-    logger.debug('{0}.__create_packet (hex): {1}'.format(self.cn,
-      ':'.join(x.encode('hex') for x in packet)))
+        Returns:
+          list of str: List of zabbix messages
+        """
 
-    return packet
+        metrics = []
 
-  def __get_response(self, connection):
-    """
-    Get response from zabbix server, reads from self.socket.
+        # Fill the array of messages
+        for m in metrics_array:
+            metrics.append(str(m))
 
-    Returns:
-      str: JSON response from zabbix server
-    """
+        logger.debug('%s.__create_messages: %s', self.cn, metrics)
 
-    result = None
-    response_header = self.__receive(connection, 13)
-    logger.debug('{0}.__get_response.response_header: {1}'.format(self.cn, response_header))
+        return metrics
 
-    if not response_header.startswith('ZBXD\x01') or len(response_header) != 13:
-      logger.debug('{0}.__get_response: Wrong zabbix response'.format(self.cn))
-      result = False
-    else:
-      response_len = struct.unpack('<Q', response_header[5:])[0]
+    def __create_request(self, messages):
+        """
+        Create a formatted request to zabbix from a list of messages.
 
-      try:
-        response_body = connection.recv(response_len)
-      finally:
-        connection.close()
+        Attributes:
+          messages (list of str): List zabbix messages
 
-      result = json.loads(response_body)
-      logger.debug('{0}.__get_response: {1}'.format(self.cn, result))
+        Returns:
+          str: Formatted request to zabbix
+        """
 
-    return result
+        request = '{"request":"sender data","data":[%s]}' % ','.join(messages)
+        logger.debug('%s.__create_request: %s', self.cn, request)
 
-  def send(self, metrics):
-    """
-    Send the metrics to zabbix server.
+        return request
 
-    Attributes:
-      metrics (list of ZabbixMetrics): List of metrics that will be send to Zabbix
+    def __create_packet(self, request):
+        """
+        Create a formatted packet from a request.
 
-    Returns:
-      bool: True if sent successful, False if was an error.
-    """
+        Attributes:
+          request (str): Request string to zabbix
 
-    result = None
+        Returns:
+          str: Packet string to zabbix
+        """
 
-    messages = self.__create_messages(metrics)
-    request = self.__create_request(messages)
-    packet = self.__create_packet(request)
+        data_len = struct.pack('<Q', len(request))
+        packet = 'ZBXD\x01' + data_len + request
+        logger.debug('%s.__create_packet (str): %s', self.cn, packet)
+        logger.debug('%s.__create_packet (hex): %s', self.cn,
+                     ':'.join(x.encode('hex') for x in packet))
 
-    for host_addr in self.zabbix_uri:
-      logger.debug('{0}.send({1}): connecting'.format(self.cn, host_addr))
+        return packet
 
-      # create socket object
-      connection  = socket.socket()
+    def __get_response(self, connection):
+        """
+        Get response from zabbix server, reads from self.socket.
 
-      # server and port must be tuple
-      connection.connect(host_addr)
+        Returns:
+          str: JSON response from zabbix server or False in case of some errors
+        """
 
-      try:
-        connection.sendall(packet)
-      except Exception, e:
-        logger.debug("{0}.send: Error while sending the data to zabbix\nERROR:{1}".format(self.cn, e))
-        connection.close()
-        exit()
+        response_header = self.__receive(connection, 13)
+        logger.debug('%s.__get_response.response_header: %s', self.cn, response_header)
 
-      # socket will be closed in self._get_response()
-      response = self.__get_response(connection)
-      logger.debug('{0}.send({1}): {2}'.format(self.cn, host_addr, response))
+        if not response_header.startswith('ZBXD\x01') or len(response_header) != 13:
+            logger.debug('%s.__get_response: Wrong zabbix response', self.cn)
+            result = False
+        else:
+            response_len = struct.unpack('<Q', response_header[5:])[0]
 
-      if response.get('response') == 'success':
-        result = True
-      else:
-        logger.debug('{0}.send: Got error from zabbix => {1}'.format(self.cn, response))
-        raise Exception('Zabbix Server ({0}) reject packet.'.format(host_addr))
+            response_body = connection.recv(response_len)
 
-    return result
+            result = json.loads(response_body)
+            logger.debug('%s.__get_response: %s', self.cn, result)
+
+        try:
+            connection.close()
+        except:
+            pass
+
+        return result
+
+    def send(self, metrics):
+        """
+        Send the metrics to zabbix server.
+
+        Attributes:
+          metrics (list of ZabbixMetrics): List of metrics that will be send to Zabbix
+
+        Returns:
+          bool: True if sent successful, False if was an error.
+        """
+
+        result = None
+
+        messages = self.__create_messages(metrics)
+        request = self.__create_request(messages)
+        packet = self.__create_packet(request)
+
+        for host_addr in self.zabbix_uri:
+            logger.debug('%s.send(%s): connecting', self.cn, host_addr)
+
+            # create socket object
+            connection = socket.socket()
+
+            # server and port must be tuple
+            connection.connect(host_addr)
+
+            try:
+                connection.sendall(packet)
+            except Exception as e:
+                logger.debug("%s.send: Error while sending the data to zabbix\nERROR:%s", self.cn, e)
+                connection.close()
+                exit()
+
+            # socket will be closed in self._get_response()
+            response = self.__get_response(connection)
+            logger.debug('%s.send(%s): %s', self.cn, host_addr, response)
+
+            if response and response.get('response') == 'success':
+                result = True
+            else:
+                logger.debug('%s.send: Got error from zabbix => %s}', self.cn, response)
+                raise Exception('Zabbix Server ({0}) reject packet.'.format(host_addr))
+
+        return result
