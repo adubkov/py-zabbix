@@ -121,13 +121,22 @@ class ZabbixAPI(object):
       z = ZabbixAPI()
       apiinfo = z.do_request('apiinfo.version')
     """
-    request_json = {
-      'jsonrpc':'2.0',
-      'method': method,
-      'params': params or {},
-      'auth': self.auth,
-      'id': '1',
-    }
+
+    if method = 'user.login':
+      request_json = {
+        'jsonrpc':'2.0',
+        'method': method,
+        'params': params or {},
+        'id': '1',
+      }
+    else:
+      request_json = {
+        'jsonrpc':'2.0',
+        'method': method,
+        'params': params or {},
+        'auth': self.auth,
+        'id': '1',
+      }
 
     logger.debug('urllib2.Request({0}, {1})'.format(self.url,json.dumps(request_json)))
     req = urllib2.Request(self.url, json.dumps(request_json))
