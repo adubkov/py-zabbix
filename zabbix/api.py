@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+import ssl
 import urllib2
 
 class _NullHandler(logging.Handler):
@@ -129,13 +130,18 @@ class ZabbixAPI(object):
       'id': '1',
     }
 
+    # Create default context to skip SSL cert verification.
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+
     logger.debug('urllib2.Request({0}, {1})'.format(self.url,json.dumps(request_json)))
     req = urllib2.Request(self.url, json.dumps(request_json))
     req.get_method = lambda: 'POST'
     req.add_header('Content-Type', 'application/json-rpc')
 
     try:
-      res = urllib2.urlopen(req)
+      res = urllib2.urlopen(req, context=ctx)
       response_json = json.load(res)
     except ValueError:
       raise ZabbixAPIException("Unable to parse json: %" % res)
