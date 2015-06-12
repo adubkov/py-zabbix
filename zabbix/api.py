@@ -188,12 +188,14 @@ class ZabbixAPI(object):
                              If None - will return list of all object in the scope.
           with_id    (bool): Return values will be in zabbix format.
                              Examlpe: {'itemid: 128}
+          name       (bool): Return name instead id.
           hostid      (int): Specify id of host for special cases
-          templateid  (int): Specify scope to specific template
+          templateids (int): Specify scope to specific template
           app_name    (str): Specify scope to specific template
 
         """
         result = None
+        name = args.get('name', False)
 
         type_ = '{item_type}.get'.format(item_type=item_type)
 
@@ -217,15 +219,17 @@ class ZabbixAPI(object):
 
         filter_ = {
             'filter': {
-                item_filter_name.get(
-                    item_type,
-                    'name'): item},
+                    item_filter_name.get(item_type, 'name'): item,
+                },
             'output': 'extend'}
         if hostid:
             filter_['filter'].update({'hostid': hostid})
 
-        if args.get('templateid'):
-            filter_['templateids'] = args['templateid']
+        if args.get('templateids'):
+            if item_type == 'usermacro':
+                filter_['hostids'] = args['templateids']
+            else:
+                filter_['templateids'] = args['templateids']
         if args.get('app_name'):
             filter_['application'] = args['app_name']
 
@@ -242,7 +246,14 @@ class ZabbixAPI(object):
                     item_type))
             result = []
             for obj in response:
-                if with_id:
+                # Check if object not belong current template
+                if args.get('templateids'):
+                    if not obj.get('templateid') in ("0", None) or not len(obj.get('templateids',[])) == 0:
+                            continue
+
+                if name:
+                    result.append(obj.get(item_filter_name.get(item_type, 'name')))
+                elif with_id:
                     result.append({item_id: int(obj.get(item_id))})
                 else:
                     result.append(int(obj.get(item_id)))
