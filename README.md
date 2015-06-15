@@ -1,11 +1,11 @@
 # Zabbix module for Python
 That set of modules allow to work with Zabbix in Python.
 
-Curretnly it contain:
+Currently it contains:
 * Module for work with Zabbix API
 * Module for send metrics to Zabbix.
 
-Those modules not require addition modules, they use standard Python modules.
+Those modules do not require addition modules, they use standard Python modules.
 
 # Install
 
@@ -70,7 +70,7 @@ hostnames2 = [host['host'] for host in result2['result']]
 ```
 
 ### ZabbixAPIObjectClass
-That class dinamicaly map method to Zabbix API call.
+That class dynamically maps method to Zabbix API call.
 
 
 ## Sender
