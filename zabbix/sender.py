@@ -1,8 +1,11 @@
-import ConfigParser
+import configparser
 import json
 import logging
 import socket
-import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 import struct
 import time
 
