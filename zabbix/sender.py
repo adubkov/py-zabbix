@@ -90,7 +90,7 @@ class ZabbixSender(object):
         except:
             exit()
 
-        config_file_fp = StringIO.StringIO(config_file_data)
+        config_file_fp = io.StringIO(config_file_data)
         config = ConfigParser.RawConfigParser({'Server': '127.0.0.1', 'Port': 10051})
         config.readfp(config_file_fp)
         zabbix_server = config.get('root', 'Server')
