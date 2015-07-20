@@ -2,12 +2,16 @@ import configparser
 import json
 import logging
 import socket
+import struct
+import time
+"""
+Python3 compatibility 
+"""
 try:
     from StringIO import StringIO
 except ImportError:
     from io import StringIO
-import struct
-import time
+
 
 logger = logging.getLogger(__name__)
 
@@ -170,11 +174,10 @@ class ZabbixSender(object):
         """
 
         data_len = struct.pack('<Q', len(request))
-        packet = 'ZBXD\x01' + data_len + request
+        packet = 'ZBXD\x01' + data_len.decode() + request
         logger.debug('%s.__create_packet (str): %s', self.cn, packet)
         logger.debug('%s.__create_packet (hex): %s', self.cn,
-                     ':'.join(x.encode('hex') for x in packet))
-
+                      ':'.join( hex(ord(x))[2:] for x in packet ))
         return packet
 
     def __get_response(self, connection):
