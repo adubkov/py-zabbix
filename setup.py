@@ -2,7 +2,7 @@
 from setuptools import setup
 
 setup(name='py-zabbix',
-      version='0.5.6',
+      version='0.6.0',
       description='Python modules for work with zabbix.',
       url='https://github.com/blacked/py-zabbix',
       author='Alexey Dubkov',
