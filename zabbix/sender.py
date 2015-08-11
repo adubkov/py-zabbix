@@ -1,10 +1,17 @@
-import ConfigParser
+import configparser
 import json
 import logging
 import socket
-import StringIO
 import struct
 import time
+"""
+Python3 compatibility 
+"""
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+
 
 logger = logging.getLogger(__name__)
 
@@ -87,8 +94,8 @@ class ZabbixSender(object):
         except:
             exit()
 
-        config_file_fp = StringIO.StringIO(config_file_data)
-        config = ConfigParser.RawConfigParser({'Server': '127.0.0.1', 'Port': 10051})
+        config_file_fp = StringIO(config_file_data)
+        config = configparser.RawConfigParser({'Server': '127.0.0.1', 'Port': 10051})
         config.readfp(config_file_fp)
         zabbix_server = config.get('root', 'Server')
         zabbix_port = config.get('root', 'Port')
@@ -167,11 +174,10 @@ class ZabbixSender(object):
         """
 
         data_len = struct.pack('<Q', len(request))
-        packet = 'ZBXD\x01' + data_len + request
+        packet = 'ZBXD\x01' + data_len.decode() + request
         logger.debug('%s.__create_packet (str): %s', self.cn, packet)
         logger.debug('%s.__create_packet (hex): %s', self.cn,
-                     ':'.join(x.encode('hex') for x in packet))
-
+                      ':'.join( hex(ord(x))[2:] for x in packet ))
         return packet
 
     def __get_response(self, connection):
