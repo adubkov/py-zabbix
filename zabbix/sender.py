@@ -3,9 +3,11 @@ import json
 import logging
 import socket
 import struct
+import sys
 import time
+
 """
-Python3 compatibility 
+Python3 compatibility
 """
 try:
     from StringIO import StringIO
@@ -92,7 +94,7 @@ class ZabbixSender(object):
             with open(config_file, 'r') as f:
                 config_file_data = "[root]\n" + f.read()
         except:
-            exit()
+            raise Exception("Can't load configuration from file: {0}".format(config_file))
 
         config_file_fp = StringIO(config_file_data)
         config = configparser.RawConfigParser({'Server': '127.0.0.1', 'Port': 10051})
@@ -174,7 +176,14 @@ class ZabbixSender(object):
         """
 
         data_len = struct.pack('<Q', len(request))
-        packet = 'ZBXD\x01' + data_len.decode() + request
+
+        if sys.version_info[0] == 3:
+            data = data_len.decode()
+        else:
+            data = data_len
+
+        packet = 'ZBXD\x01' + data + request
+
         logger.debug('%s.__create_packet (str): %s', self.cn, packet)
         logger.debug('%s.__create_packet (hex): %s', self.cn,
                       ':'.join( hex(ord(x))[2:] for x in packet ))
@@ -238,9 +247,8 @@ class ZabbixSender(object):
             try:
                 connection.sendall(packet)
             except Exception as e:
-                logger.debug("%s.send: Error while sending the data to zabbix\nERROR:%s", self.cn, e)
                 connection.close()
-                exit()
+                raise Exception("{0}.send: Error while sending the data to zabbix\nERROR:{1}".format(self.cn, e))
 
             # socket will be closed in self._get_response()
             response = self.__get_response(connection)
