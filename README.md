@@ -33,7 +33,7 @@ result = zapi.do_request('host.getobjects', {'status':1})
 
 #### Get Zabbix API version
 ```python
-api_version()
+zapi.api_version()
 ```
 
 #### Get object ID
