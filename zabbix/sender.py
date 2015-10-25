@@ -18,6 +18,18 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+if sys.version_info[0] == 3:
+    def enc(data):
+        return data.encode('utf-8')
+    def dec(data):
+        return data.decode('utf-8')
+else:
+    def enc(data):
+        return data
+    def dec(data):
+        return data
+
+
 class ZabbixMetric(object):
     """
     Create structure contains metric for zabbix server.
@@ -117,7 +129,7 @@ class ZabbixSender(object):
           count (int):  Amount of data that should be read from socket, in bytes.
         """
 
-        buf = ''
+        buf = enc('')
 
         while len(buf) < count:
             chunk = sock.recv(count - len(buf))
@@ -177,11 +189,8 @@ class ZabbixSender(object):
 
         data_len = struct.pack('<Q', len(request))
 
-        if sys.version_info[0] == 3:
-            data = data_len.decode()
-        else:
-            data = data_len
-
+        data = dec(data_len)
+        
         packet = 'ZBXD\x01' + data + request
 
         logger.debug('%s.__create_packet (str): %s', self.cn, packet)
@@ -200,7 +209,7 @@ class ZabbixSender(object):
         response_header = self.__receive(connection, 13)
         logger.debug('%s.__get_response.response_header: %s', self.cn, response_header)
 
-        if not response_header.startswith('ZBXD\x01') or len(response_header) != 13:
+        if not response_header.startswith(enc('ZBXD\x01')) or len(response_header) != 13:
             logger.debug('%s.__get_response: Wrong zabbix response', self.cn)
             result = False
         else:
@@ -208,7 +217,7 @@ class ZabbixSender(object):
 
             response_body = connection.recv(response_len)
 
-            result = json.loads(response_body)
+            result = json.loads(dec(response_body))
             logger.debug('%s.__get_response: %s', self.cn, result)
 
         try:
@@ -245,7 +254,7 @@ class ZabbixSender(object):
             connection.connect(host_addr)
 
             try:
-                connection.sendall(packet)
+                connection.sendall(enc(packet))
             except Exception as e:
                 connection.close()
                 raise Exception("{0}.send: Error while sending the data to zabbix\nERROR:{1}".format(self.cn, e))
