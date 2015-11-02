@@ -1,4 +1,3 @@
-import configparser
 import json
 import logging
 import socket
@@ -11,8 +10,10 @@ Python3 compatibility
 """
 try:
     from StringIO import StringIO
+    import ConfigParser as configparser
 except ImportError:
     from io import StringIO
+    import configparser
 
 
 logger = logging.getLogger(__name__)
