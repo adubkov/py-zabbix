@@ -1,4 +1,3 @@
-import configparser
 import json
 import logging
 import socket
@@ -11,8 +10,10 @@ Python3 compatibility
 """
 try:
     from StringIO import StringIO
+    import ConfigParser as configparser
 except ImportError:
     from io import StringIO
+    import configparser
 
 
 logger = logging.getLogger(__name__)
@@ -117,7 +118,7 @@ class ZabbixSender(object):
           count (int):  Amount of data that should be read from socket, in bytes.
         """
 
-        buf = ''
+        buf = b''
 
         while len(buf) < count:
             chunk = sock.recv(count - len(buf))
@@ -160,6 +161,7 @@ class ZabbixSender(object):
         """
 
         request = '{"request":"sender data","data":[%s]}' % ','.join(messages)
+        request = request.encode("utf-8")
         logger.debug('%s.__create_request: %s', self.cn, request)
 
         return request
@@ -176,17 +178,12 @@ class ZabbixSender(object):
         """
 
         data_len = struct.pack('<Q', len(request))
+        packet = b'ZBXD\x01' + data_len + request
 
-        if sys.version_info[0] == 3:
-            data = data_len.decode()
-        else:
-            data = data_len
-
-        packet = 'ZBXD\x01' + data + request
-
+        ord23 = lambda x: ord(x) if not isinstance(x, int) else x
         logger.debug('%s.__create_packet (str): %s', self.cn, packet)
         logger.debug('%s.__create_packet (hex): %s', self.cn,
-                      ':'.join( hex(ord(x))[2:] for x in packet ))
+                      ':'.join( hex(ord23(x))[2:] for x in packet ))
         return packet
 
     def __get_response(self, connection):
@@ -200,7 +197,7 @@ class ZabbixSender(object):
         response_header = self.__receive(connection, 13)
         logger.debug('%s.__get_response.response_header: %s', self.cn, response_header)
 
-        if not response_header.startswith('ZBXD\x01') or len(response_header) != 13:
+        if not response_header.startswith(b'ZBXD\x01') or len(response_header) != 13:
             logger.debug('%s.__get_response: Wrong zabbix response', self.cn)
             result = False
         else:
@@ -208,7 +205,7 @@ class ZabbixSender(object):
 
             response_body = connection.recv(response_len)
 
-            result = json.loads(response_body)
+            result = json.loads(response_body.decode("utf-8"))
             logger.debug('%s.__get_response: %s', self.cn, result)
 
         try:
