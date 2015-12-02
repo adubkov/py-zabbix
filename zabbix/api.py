@@ -3,7 +3,12 @@ import logging
 import re
 import ssl
 import sys
-import urllib2
+
+# In Python 3, urllib2.Request and urlopen are in the urllib.request module
+try:
+    import urllib2
+except ImportError:
+    import urllib.request as urllib2
 
 
 class _NullHandler(logging.Handler):
@@ -151,7 +156,10 @@ class ZabbixAPI(object):
             'urllib2.Request({0}, {1})'.format(
                 self.url,
                 json.dumps(request_json)))
-        req = urllib2.Request(self.url, json.dumps(request_json))
+        data = json.dumps(request_json)
+        if not isinstance(data, bytes):
+            data = data.encode("utf-8")
+        req = urllib2.Request(self.url, data)
         req.get_method = lambda: 'POST'
         req.add_header('Content-Type', 'application/json-rpc')
 
