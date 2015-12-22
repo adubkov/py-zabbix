@@ -162,8 +162,8 @@ class ZabbixAPI(object):
                 res = urllib2.urlopen(req)
 
             response_json = json.load(res)
-        except ValueError:
-            raise ZabbixAPIException("Unable to parse json: %" % res)
+        except ValueError as e:
+            raise ZabbixAPIException("Unable to parse json: %s" % e.message)
 
         logger.debug("Response Body: %s" % json.dumps(response_json, indent=4,
                                                       separators=(',', ': ')))
