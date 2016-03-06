@@ -15,5 +15,4 @@ setup(name='py-zabbix',
       url='https://github.com/blacked/py-zabbix',
       author='Alexey Dubkov',
       author_email='alexey.dubkov@gmail.com',
-      packages=['zabbix']
-     )
+      packages=['zabbix'])
