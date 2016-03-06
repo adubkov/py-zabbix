@@ -77,6 +77,16 @@ class ZabbixSender(object):
 
         logger.debug('%s(%s)', self.cn, self.zabbix_uri)
 
+    def __repr__(self):
+        """
+        Represent detailed ZabbixSender view.
+        """
+
+        result = json.dumps(self.__dict__)
+        logger.debug('%s: %s', self.__class__.__name__, result)
+
+        return result
+
     @classmethod
     def __load_from_config(cls, config_file):
         """
