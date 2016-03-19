@@ -1,0 +1,12 @@
+[run]
+omit =
+    */python?.?/*
+    */lib-python/?.?/*.py
+    */site-packages/*
+    *.egg/*
+    tests/*
+[report]
+exclude_lines =
+    import ConfigParser as configparser
+    logger
+    break

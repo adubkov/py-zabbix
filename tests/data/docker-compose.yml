@@ -1,0 +1,16 @@
+zabbix-db:
+  build: .
+  container_name: zabbix-db
+
+zabbix:
+  image: zabbix/zabbix-3.0:latest
+  container_name: zabbix
+  ports:
+    - "80:80"
+    - "10051:10051"
+  links:
+    - zabbix-db:zabbix.db
+  environment:
+    - ZS_DBHost=zabbix.db
+    - ZS_DBUser=zabbix
+    - ZS_DBPassword=zabbix
