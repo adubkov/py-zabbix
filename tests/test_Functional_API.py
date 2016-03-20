@@ -1,7 +1,7 @@
-from unittest import TestCase, skipIf
-from zabbix.api import ZabbixAPI, ZabbixAPIException
-
 import os
+
+from unittest import TestCase, skipIf
+from pyzabbix import ZabbixAPI, ZabbixAPIException
 
 
 @skipIf('TRAVIS' not in os.environ.keys(), "Travis CI test")

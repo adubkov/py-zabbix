@@ -1,5 +1,10 @@
-from unittest import TestCase, skip, skipIf
+import json
+import os
+import re
+import struct
+import sys
 
+from unittest import TestCase, skip, skipIf
 # Python 2 and 3 compatibility
 try:
     from mock import patch, call, mock_open
@@ -8,13 +13,7 @@ except:
     from unittest.mock import patch, call, mock_open
     autospec=True
 
-from zabbix.sender import ZabbixMetric, ZabbixSender
-
-import json
-import os
-import re
-import struct
-import sys
+from pyzabbix import ZabbixMetric, ZabbixSender
 
 
 class ZabbixMetricTests(TestCase):
@@ -70,7 +69,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         filename = os.path.join(folder, 'data/zabbix_agentd.conf')
         file = open(filename, 'r')
         f = file.read()
-        with patch('zabbix.sender.open', mock_open(read_data=f)):
+        with patch('pyzabbix.sender.open', mock_open(read_data=f)):
             zs = ZabbixSender(use_config=True)
             self.assertEqual(zs.zabbix_uri, [('192.168.1.2', 10051)])
         file.close()
@@ -132,7 +131,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         self.assertEqual(result[:13],
                          b'ZBXD\x01\xc4\x00\x00\x00\x00\x00\x00\x00')
 
-    @patch('zabbix.sender.socket.socket', autospec=autospec)
+    @patch('pyzabbix.sender.socket.socket', autospec=autospec)
     @skip('Issue: #27 [https://github.com/blacked/py-zabbix/issues/27]')
     def test_ZS_recive(self, mock_socket):
         mock_data = b'\x01\\\x00\x00\x00\x00\x00\x00\x00'
@@ -144,7 +143,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         self.assertEqual(mock_socket.recv.call_count, 3)
         mock_socket.recv.assert_has_calls([call(13), call(13), call(9)])
 
-    @patch('zabbix.sender.socket.socket', autospec=autospec)
+    @patch('pyzabbix.sender.socket.socket', autospec=autospec)
     def test_ZS_get_response(self, mock_socket):
         mock_socket.recv.side_effect = (self.resp_header, self.resp_body)
 
@@ -153,7 +152,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         mock_socket.recv.assert_has_calls([call(92)])
         self.assertEqual(result['response'], 'success')
 
-    @patch('zabbix.sender.socket.socket', autospec=autospec)
+    @patch('pyzabbix.sender.socket.socket', autospec=autospec)
     def test_ZS_get_response_fail(self, mock_socket):
         mock_socket.recv.side_effect = (b'IDDQD', self.resp_body)
 
@@ -161,7 +160,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         result = zs._get_response(mock_socket)
         self.assertFalse(result)
 
-    @patch('zabbix.sender.socket.socket', autospec=autospec)
+    @patch('pyzabbix.sender.socket.socket', autospec=autospec)
     def test_ZS_get_response_fail_s_close(self, mock_socket):
         mock_socket.recv.side_effect = (b'IDDQD', self.resp_body)
         mock_socket.close.side_effect = Exception
@@ -170,7 +169,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         result = zs._get_response(mock_socket)
         self.assertFalse(result)
 
-    @patch('zabbix.sender.socket.socket', autospec=autospec)
+    @patch('pyzabbix.sender.socket.socket', autospec=autospec)
     def test_ZS_send(self, mock_socket):
         mock_data = b'\x01\\\x00\x00\x00\x00\x00\x00\x00'
         mock_socket.return_value = mock_socket
@@ -181,7 +180,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         result = zs.send([zm])
         self.assertTrue(result)
 
-    @patch('zabbix.sender.socket.socket', autospec=autospec)
+    @patch('pyzabbix.sender.socket.socket', autospec=autospec)
     def test_ZS_send_sendall_exception(self, mock_socket):
         mock_socket.return_value = mock_socket
         mock_socket.sendall.side_effect = Exception
@@ -191,7 +190,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         with self.assertRaises(Exception):
             zs.send([zm])
 
-    @patch('zabbix.sender.socket.socket', autospec=autospec)
+    @patch('pyzabbix.sender.socket.socket', autospec=autospec)
     def test_ZS_send_failed(self, mock_socket):
         mock_data = b'\x01\\\x00\x00\x00\x00\x00\x00\x00'
         mock_socket.return_value = mock_socket

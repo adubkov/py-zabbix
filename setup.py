@@ -6,7 +6,7 @@ import os
 base_dir = os.path.dirname(__file__)
 
 about = {}
-with open(os.path.join(base_dir, 'zabbix', 'version.py')) as f:
+with open(os.path.join(base_dir, 'pyzabbix', 'version.py')) as f:
     exec(f.read(), about)
 
 setup(name='py-zabbix',
@@ -16,6 +16,6 @@ setup(name='py-zabbix',
       author='Alexey Dubkov',
       author_email='alexey.dubkov@gmail.com',
       test_suite='tests',
-      packages=['zabbix'],
+      packages=['pyzabbix','zabbix'],
       tests_require=['mock'],
       )

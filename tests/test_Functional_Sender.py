@@ -3,7 +3,7 @@ import os
 from unittest import TestCase, skipIf
 from time import time as now
 
-from zabbix.sender import ZabbixMetric, ZabbixSender
+from pyzabbix import ZabbixMetric, ZabbixSender
 
 
 @skipIf('TRAVIS' not in os.environ.keys(), "Travis CI test")
