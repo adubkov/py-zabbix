@@ -16,5 +16,5 @@ setup(name='py-zabbix',
       author='Alexey Dubkov',
       author_email='alexey.dubkov@gmail.com',
       test_suite='tests',
-      packages=['zabbix']
-     )
+      packages=['zabbix'],
+      )
