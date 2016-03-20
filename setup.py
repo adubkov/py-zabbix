@@ -17,4 +17,5 @@ setup(name='py-zabbix',
       author_email='alexey.dubkov@gmail.com',
       test_suite='tests',
       packages=['zabbix'],
+      install_requires=['mock'],
       )

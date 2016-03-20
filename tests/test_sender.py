@@ -1,5 +1,11 @@
 from unittest import TestCase, skip, skipIf
-from unittest.mock import patch, call, mock_open
+
+# Python 2 and 3 compatibility
+try:
+    from mock import patch, call, mock_open
+except:
+    from unittest.mock import patch, call, mock_open
+
 from zabbix.sender import ZabbixMetric, ZabbixSender
 
 import json
