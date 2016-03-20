@@ -102,14 +102,10 @@ class ZabbixSender(object):
                  zabbix_port=10051,
                  use_config=None):
 
-        self.cn = self.__class__.__name__
-
         if use_config:
             self.zabbix_uri = self._load_from_config(use_config)
         else:
             self.zabbix_uri = [(zabbix_server, zabbix_port)]
-
-        logger.debug('%s(%s)', self.cn, self.zabbix_uri)
 
     def __repr__(self):
         """Represent detailed ZabbixSender view."""
@@ -255,7 +251,11 @@ class ZabbixSender(object):
             result = json.loads(response_body.decode("utf-8"))
             logger.debug('Data received: %s', result)
 
-        connection.close()
+        try:
+            connection.close()
+        except Exception as err:
+            pass
+
         return result
 
     def send(self, metrics):

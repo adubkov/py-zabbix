@@ -1,4 +1,4 @@
-# Zabbix module for Python [![Build Status](https://travis-ci.org/blacked/py-zabbix.svg)](https://github.com/blacked/py-zabbix)
+# Zabbix module for Python [![Build Status](https://travis-ci.org/blacked/py-zabbix.svg?branch=master)](https://travis-ci.org/blacked/py-zabbix)
 That set of modules allow to work with Zabbix in Python.
 
 Currently it contains:
