@@ -211,7 +211,8 @@ class ZabbixAPI(object):
             else:
                 res = urllib2.urlopen(req)
 
-            res_json = json.load(res)
+            res_str = res.read().decode('utf-8')
+            res_json = json.loads(res_str)
         except ValueError as e:
             raise ZabbixAPIException("Unable to parse json: %s" % e.message)
 
