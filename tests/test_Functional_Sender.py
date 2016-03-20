@@ -6,9 +6,8 @@ from time import time as now
 from zabbix.sender import ZabbixMetric, ZabbixSender
 
 
+@skipIf('TRAVIS' not in os.environ.keys(), "Travis CI test")
 class FunctionalSender(TestCase):
-    @skipIf('TRAVIS' not in os.environ.keys(),
-            "Travis CI test")
     def test_sendMetricsToServer(self):
         cur_date_unix = int(now())
         m = [
