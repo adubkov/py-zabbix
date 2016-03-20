@@ -79,10 +79,10 @@ class ZabbixSender(object):
     `zabbix protocol <https://www.zabbix.com/documentation/1.8/protocols>`_.
 
     :type zabbix_server: str
-    :param zabbix_server: Zabbix server ip address. Default: 127.0.0.1
+    :param zabbix_server: Zabbix server ip address. Default: `127.0.0.1`
 
     :type zabbix_port: int
-    :param zabbix_port: Zabbix server port. Default: 10051
+    :param zabbix_port: Zabbix server port. Default: `10051`
 
     :type use_config: str
     :param use_config: Path to zabbix_agentd.conf file to load settings from.

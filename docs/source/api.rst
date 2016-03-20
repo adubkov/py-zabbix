@@ -1,11 +1,11 @@
-.. _zabbix.api:
+.. _pyzabbix.api:
 
 ===================
-Module `zabbix.api`
+Module `pyzabbix.api`
 ===================
 
 This module provide classes to work with Zabbix API.
 
-.. automodule:: zabbix.api
+.. automodule:: pyzabbix.api
     :members:
     :exclude-members: ZabbixAPIException, ZabbixAPIObjectClass

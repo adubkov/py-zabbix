@@ -1,8 +1,8 @@
-.. _zabbix.sender:
+.. _pyzabbix.sender:
 
 ======================
-Module `zabbix.sender`
+Module `pyzabbix.sender`
 ======================
 
-.. automodule:: zabbix.sender
+.. automodule:: pyzabbix.sender
     :members:

@@ -96,10 +96,10 @@ class ZabbixAPI(object):
         `user.login`.
 
     :type user: str
-    :param user: Zabbix user name. Default: 'admin'.
+    :param user: Zabbix user name. Default: `admin`.
 
     :type password: str
-    :param password: Zabbix user password. Default 'zabbix'.
+    :param password: Zabbix user password. Default `zabbix`.
 
     >>> from pyzabbix import ZabbixAPI
     >>> z = ZabbixAPI('https://zabbix.server', user='admin', password='zabbix')
@@ -242,7 +242,7 @@ class ZabbixAPI(object):
 
         :type with_id: bool
         :param with_id: Returned values will be in zabbix json `id` format.
-            Examlpe: {'itemid: 128}
+            Examlpe: `{'itemid: 128}`
 
         :type name: bool
         :param name: Return name instead of id.

@@ -29,8 +29,3 @@ script:
 
 after_success:
   coveralls
-
-#notifications:
-#  email:
-#    - alexey.dubkov@gmail.com
-#    - maksim77ster@gmail.com
