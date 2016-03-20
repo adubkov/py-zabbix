@@ -76,14 +76,14 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         folder = os.path.dirname(__file__)
         filename = os.path.join(folder, 'data/zabbix_agentd.conf')
         zs = ZabbixSender()
-        result = zs._ZabbixSender__load_from_config(config_file=filename)
+        result = zs._load_from_config(config_file=filename)
         self.assertEqual(result, [('192.168.1.2', 10051)])
 
     def test_ZS_create_messages(self):
         m = [ZabbixMetric('host1', 'key1', 1),
              ZabbixMetric('host2', 'key2', 2)]
         zs = ZabbixSender()
-        result = zs._ZabbixSender__create_messages(m)
+        result = zs._create_messages(m)
         self.assertIsInstance(result, list)
         self.assertEqual(len(result), 2)
 
@@ -94,7 +94,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
             '{"clock": "1457445366", "host": "host2",\
             "value": "2", "key": "key2"}']
         zs = ZabbixSender()
-        result = zs._ZabbixSender__create_request(message)
+        result = zs._create_request(message)
         self.assertIsInstance(result, bytes)
         result = json.loads(result.decode())
         self.assertEqual(result['request'], 'sender data')
@@ -107,7 +107,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
             '{"clock": "1457445366", "host": \
             "host2", "value": "2", "key": "key2"}']
         zs = ZabbixSender()
-        result = zs._ZabbixSender__create_request(message)
+        result = zs._create_request(message)
         with self.assertRaises(Exception):
             result = json.loads(result.decode())
 
@@ -118,8 +118,8 @@ failed: 10; total: 10; seconds spent: 0.000078"}
             '{"clock": "1457445366", "host": "host2",\
             "value": "2", "key": "key2"}']
         zs = ZabbixSender()
-        request = zs._ZabbixSender__create_request(message)
-        result = zs._ZabbixSender__create_packet(request)
+        request = zs._create_request(message)
+        result = zs._create_packet(request)
         data_len = struct.pack('<Q', len(request))
         self.assertEqual(result[5:13], data_len)
         self.assertEqual(result[:13],
@@ -132,7 +132,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         mock_socket.recv.side_effect = (False, b'ZBXD', mock_data)
 
         zs = ZabbixSender()
-        result = zs._ZabbixSender__receive(mock_socket, 13)
+        result = zs._receive(mock_socket, 13)
         self.assertEqual(result, b'ZBXD' + mock_data)
         self.assertEqual(mock_socket.recv.call_count, 3)
         mock_socket.recv.assert_has_calls([call(13), call(13), call(9)])
@@ -142,7 +142,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         mock_socket.recv.side_effect = (self.resp_header, self.resp_body)
 
         zs = ZabbixSender()
-        result = zs._ZabbixSender__get_response(mock_socket)
+        result = zs._get_response(mock_socket)
         mock_socket.recv.assert_has_calls([call(92)])
         self.assertEqual(result['response'], 'success')
 
@@ -151,7 +151,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         mock_socket.recv.side_effect = (b'IDDQD', self.resp_body)
 
         zs = ZabbixSender()
-        result = zs._ZabbixSender__get_response(mock_socket)
+        result = zs._get_response(mock_socket)
         self.assertFalse(result)
 
     @patch('zabbix.sender.socket.socket', autospec=True)
@@ -160,7 +160,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         mock_socket.close.side_effect = Exception
 
         zs = ZabbixSender()
-        result = zs._ZabbixSender__get_response(mock_socket)
+        result = zs._get_response(mock_socket)
         self.assertFalse(result)
 
     @patch('zabbix.sender.socket.socket', autospec=True)
