@@ -65,7 +65,6 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         with self.assertRaises(Exception):
             zs = ZabbixSender(use_config=filename)
 
-    @skipIf(sys.version_info.minor != 5, reason="Worked only 3.5")
     def test_ZS_init_config_default(self):
         folder = os.path.dirname(__file__)
         filename = os.path.join(folder, 'data/zabbix_agentd.conf')
