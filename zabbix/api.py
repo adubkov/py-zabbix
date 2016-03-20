@@ -88,6 +88,19 @@ class ZabbixAPIObjectClass(object):
 class ZabbixAPI(object):
     """ZabbixAPI class, implement interface to zabbix api.
 
+    :type url: str
+    :param url: URL to zabbix api. Default: `https://localhost/zabbix`
+
+    :type use_authenticate: bool
+    :param use_authenticate: Use `user.authenticate` method if `True` else
+        `user.login`.
+
+    :type user: str
+    :param user: Zabbix user name. Default: 'admin'.
+
+    :type password: str
+    :param password: Zabbix user password. Default 'zabbix'.
+
     >>> z = ZabbixAPI('https://zabbix.server', user='admin', password='zabbix')
     >>> # Get API Version
     >>> z.api_info.version()
