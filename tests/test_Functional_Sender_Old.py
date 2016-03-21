@@ -8,7 +8,7 @@ from zabbix.sender import ZabbixMetric, ZabbixSender
 
 @skipIf('TRAVIS' not in os.environ.keys(), "Travis CI test")
 class FunctionalSender(TestCase):
-    def FunctionalSenderOld(self):
+    def test_FunctionalSenderOld(self):
         cur_date_unix = int(now())
         m = [
             ZabbixMetric('host2', 'key3', 'IDDQD'),
