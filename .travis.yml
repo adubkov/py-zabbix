@@ -29,3 +29,7 @@ script:
 
 after_success:
   coveralls
+
+notifications:
+  - email:
+    - maksim77ster@gmail.com
