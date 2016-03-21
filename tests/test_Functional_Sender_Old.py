@@ -3,12 +3,12 @@ import os
 from unittest import TestCase, skipIf
 from time import time as now
 
-from pyzabbix import ZabbixMetric, ZabbixSender
+from zabbix.sender import ZabbixMetric, ZabbixSender
 
 
 @skipIf('TRAVIS' not in os.environ.keys(), "Travis CI test")
 class FunctionalSender(TestCase):
-    def test_sendMetricsToServer(self):
+    def test_FunctionalSenderOld(self):
         cur_date_unix = int(now())
         m = [
             ZabbixMetric('host2', 'key3', 'IDDQD'),

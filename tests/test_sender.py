@@ -1,12 +1,19 @@
-from unittest import TestCase, skip, skipIf
-from unittest.mock import patch, call, mock_open
-from zabbix.sender import ZabbixMetric, ZabbixSender
-
 import json
 import os
 import re
 import struct
 import sys
+
+from unittest import TestCase, skip, skipIf
+# Python 2 and 3 compatibility
+try:
+    from mock import patch, call, mock_open
+    autospec=None
+except:
+    from unittest.mock import patch, call, mock_open
+    autospec=True
+
+from pyzabbix import ZabbixMetric, ZabbixSender
 
 
 class ZabbixMetricTests(TestCase):
@@ -37,7 +44,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
 
     def test_ZS_init(self):
         zs = ZabbixSender()
-        self.assertEqual(zs.cn, 'ZabbixSender')
+        self.assertEqual(zs.__class__.__name__, 'ZabbixSender')
         self.assertEqual(isinstance(zs.zabbix_uri[0], tuple), True)
         self.assertEqual(zs.zabbix_uri[0][0], '127.0.0.1')
         self.assertEqual(zs.zabbix_uri[0][1], 10051)
@@ -46,7 +53,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         folder = os.path.dirname(__file__)
         filename = os.path.join(folder, 'data/zabbix_agentd.conf')
         zs = ZabbixSender(use_config=filename)
-        self.assertEqual(zs.cn, 'ZabbixSender')
+        self.assertEqual(zs.__class__.__name__, 'ZabbixSender')
         self.assertEqual(isinstance(zs.zabbix_uri[0], tuple), True)
         self.assertEqual(zs.zabbix_uri[0][0], '192.168.1.2')
         self.assertEqual(zs.zabbix_uri[0][1], 10051)
@@ -57,13 +64,12 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         with self.assertRaises(Exception):
             zs = ZabbixSender(use_config=filename)
 
-    @skipIf(sys.version_info.minor != 5, reason="Worked only 3.5")
     def test_ZS_init_config_default(self):
         folder = os.path.dirname(__file__)
         filename = os.path.join(folder, 'data/zabbix_agentd.conf')
         file = open(filename, 'r')
         f = file.read()
-        with patch('zabbix.sender.open', mock_open(read_data=f)):
+        with patch('pyzabbix.sender.open', mock_open(read_data=f)):
             zs = ZabbixSender(use_config=True)
             self.assertEqual(zs.zabbix_uri, [('192.168.1.2', 10051)])
         file.close()
@@ -76,14 +82,14 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         folder = os.path.dirname(__file__)
         filename = os.path.join(folder, 'data/zabbix_agentd.conf')
         zs = ZabbixSender()
-        result = zs._ZabbixSender__load_from_config(config_file=filename)
+        result = zs._load_from_config(config_file=filename)
         self.assertEqual(result, [('192.168.1.2', 10051)])
 
     def test_ZS_create_messages(self):
         m = [ZabbixMetric('host1', 'key1', 1),
              ZabbixMetric('host2', 'key2', 2)]
         zs = ZabbixSender()
-        result = zs._ZabbixSender__create_messages(m)
+        result = zs._create_messages(m)
         self.assertIsInstance(result, list)
         self.assertEqual(len(result), 2)
 
@@ -94,7 +100,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
             '{"clock": "1457445366", "host": "host2",\
             "value": "2", "key": "key2"}']
         zs = ZabbixSender()
-        result = zs._ZabbixSender__create_request(message)
+        result = zs._create_request(message)
         self.assertIsInstance(result, bytes)
         result = json.loads(result.decode())
         self.assertEqual(result['request'], 'sender data')
@@ -107,7 +113,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
             '{"clock": "1457445366", "host": \
             "host2", "value": "2", "key": "key2"}']
         zs = ZabbixSender()
-        result = zs._ZabbixSender__create_request(message)
+        result = zs._create_request(message)
         with self.assertRaises(Exception):
             result = json.loads(result.decode())
 
@@ -118,52 +124,52 @@ failed: 10; total: 10; seconds spent: 0.000078"}
             '{"clock": "1457445366", "host": "host2",\
             "value": "2", "key": "key2"}']
         zs = ZabbixSender()
-        request = zs._ZabbixSender__create_request(message)
-        result = zs._ZabbixSender__create_packet(request)
+        request = zs._create_request(message)
+        result = zs._create_packet(request)
         data_len = struct.pack('<Q', len(request))
         self.assertEqual(result[5:13], data_len)
         self.assertEqual(result[:13],
                          b'ZBXD\x01\xc4\x00\x00\x00\x00\x00\x00\x00')
 
-    @patch('zabbix.sender.socket.socket', autospec=True)
+    @patch('pyzabbix.sender.socket.socket', autospec=autospec)
     @skip('Issue: #27 [https://github.com/blacked/py-zabbix/issues/27]')
     def test_ZS_recive(self, mock_socket):
         mock_data = b'\x01\\\x00\x00\x00\x00\x00\x00\x00'
         mock_socket.recv.side_effect = (False, b'ZBXD', mock_data)
 
         zs = ZabbixSender()
-        result = zs._ZabbixSender__receive(mock_socket, 13)
+        result = zs._receive(mock_socket, 13)
         self.assertEqual(result, b'ZBXD' + mock_data)
         self.assertEqual(mock_socket.recv.call_count, 3)
         mock_socket.recv.assert_has_calls([call(13), call(13), call(9)])
 
-    @patch('zabbix.sender.socket.socket', autospec=True)
+    @patch('pyzabbix.sender.socket.socket', autospec=autospec)
     def test_ZS_get_response(self, mock_socket):
         mock_socket.recv.side_effect = (self.resp_header, self.resp_body)
 
         zs = ZabbixSender()
-        result = zs._ZabbixSender__get_response(mock_socket)
+        result = zs._get_response(mock_socket)
         mock_socket.recv.assert_has_calls([call(92)])
         self.assertEqual(result['response'], 'success')
 
-    @patch('zabbix.sender.socket.socket', autospec=True)
+    @patch('pyzabbix.sender.socket.socket', autospec=autospec)
     def test_ZS_get_response_fail(self, mock_socket):
         mock_socket.recv.side_effect = (b'IDDQD', self.resp_body)
 
         zs = ZabbixSender()
-        result = zs._ZabbixSender__get_response(mock_socket)
+        result = zs._get_response(mock_socket)
         self.assertFalse(result)
 
-    @patch('zabbix.sender.socket.socket', autospec=True)
+    @patch('pyzabbix.sender.socket.socket', autospec=autospec)
     def test_ZS_get_response_fail_s_close(self, mock_socket):
         mock_socket.recv.side_effect = (b'IDDQD', self.resp_body)
         mock_socket.close.side_effect = Exception
 
         zs = ZabbixSender()
-        result = zs._ZabbixSender__get_response(mock_socket)
+        result = zs._get_response(mock_socket)
         self.assertFalse(result)
 
-    @patch('zabbix.sender.socket.socket', autospec=True)
+    @patch('pyzabbix.sender.socket.socket', autospec=autospec)
     def test_ZS_send(self, mock_socket):
         mock_data = b'\x01\\\x00\x00\x00\x00\x00\x00\x00'
         mock_socket.return_value = mock_socket
@@ -174,7 +180,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         result = zs.send([zm])
         self.assertTrue(result)
 
-    @patch('zabbix.sender.socket.socket', autospec=True)
+    @patch('pyzabbix.sender.socket.socket', autospec=autospec)
     def test_ZS_send_sendall_exception(self, mock_socket):
         mock_socket.return_value = mock_socket
         mock_socket.sendall.side_effect = Exception
@@ -184,7 +190,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         with self.assertRaises(Exception):
             zs.send([zm])
 
-    @patch('zabbix.sender.socket.socket', autospec=True)
+    @patch('pyzabbix.sender.socket.socket', autospec=autospec)
     def test_ZS_send_failed(self, mock_socket):
         mock_data = b'\x01\\\x00\x00\x00\x00\x00\x00\x00'
         mock_socket.return_value = mock_socket
