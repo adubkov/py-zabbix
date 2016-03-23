@@ -110,7 +110,7 @@ class ZabbixAPI(object):
     >>> z.do_request('apiinfo.version')
     >>> {u'jsonrpc': u'2.0', u'result': u'2.2.1', u'id': u'1'}
     >>> # Get all disabled hosts
-    >>> z.host.getobjects(status=1)
+    >>> z.host.get(status=1)
     >>> # or
     >>> z.do_request('host.getobjects', {'status': 1})
     """
@@ -179,9 +179,13 @@ class ZabbixAPI(object):
             'jsonrpc': '2.0',
             'method': method,
             'params': params or {},
-            'auth': self.auth,
             'id': '1',
         }
+
+        # apiinfo.version and user.login doesn't require auth token
+        if (self.auth
+            and (method not in ('apiinfo.version', 'user.login'))):
+            request_json['auth'] = self.auth
 
         # We shoul explicitly disable cert verification to support
         # self-signed certs with urllib2 since Python 2.7.9
