@@ -14,3 +14,8 @@ class FunctionalAPI(TestCase):
         except ZabbixAPIException:
             self.fail('Can\'t login to Zabbix')
 
+    def test_get_api_version(self):
+        zapi = ZabbixAPI(url='http://127.0.0.1',
+                         user='Admin',
+                         password='zabbix')
+        self.assertEqual(zapi.api_version(), '3.0.1')
