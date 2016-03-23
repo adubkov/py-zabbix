@@ -28,13 +28,13 @@ You can make zabbix api call with two ways.
 
 ::
 
-    result = zapi.host.getobjects(status=1)
+    result = zapi.host.get(status=1)
 
 2. By passing zabbix api function and arguments as parameters:
 
 ::
 
-    result = zapi.do_request('host.getobjects', {'status':1})
+    result = zapi.do_request('host.get', {'status':1})
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Get list of not monitored hosts from zabbix
@@ -48,11 +48,11 @@ Get list of not monitored hosts from zabbix
     zapi = ZabbixAPI(url='https://localhost/zabbix/', user='admin', password='zabbix')
 
     # Get all disabled hosts
-    result = zapi.host.getobjects(status=1)
+    result = zapi.host.get(status=1)
     hostnames = [host['host'] for host in result1]
 
     # Other way to get all disabled hosts
-    result2 = zapi.do_request('host.getobjects', {'status':1})
+    result2 = zapi.do_request('host.get', {'status':1})
     hostnames2 = [host['host'] for host in result2['result']]
 
 
