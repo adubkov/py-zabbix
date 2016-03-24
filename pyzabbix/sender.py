@@ -110,7 +110,7 @@ class ZabbixSender(object):
     def __repr__(self):
         """Represent detailed ZabbixSender view."""
 
-        result = json.dumps(self.__dict__)
+        result = json.dumps(self.__dict__, ensure_ascii=False)
         logger.debug('%s: %s', self.__class__.__name__, result)
 
         return result
