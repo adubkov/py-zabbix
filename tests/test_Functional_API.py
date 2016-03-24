@@ -18,4 +18,9 @@ class FunctionalAPI(TestCase):
         zapi = ZabbixAPI(url='http://127.0.0.1',
                          user='Admin',
                          password='zabbix')
-        self.assertEqual(zapi.api_version(), '3.0.1')
+        if os.environ['ZABBIX_VERSION'] == '3':
+            self.assertEqual(zapi.api_version(), '3.0.1')
+        elif os.environ['ZABBIX_VERSION'] == '2':
+            self.assertEqual(zapi.api_version(), '2.4.7')
+        else:
+            self.fail('api_version() not tested!')
