@@ -61,7 +61,8 @@ class ZabbixMetric(object):
         self.host = str(host)
         self.key = str(key)
         self.value = str(value)
-        self.clock = clock if clock else str(int(time.time()))
+        if clock is not None:
+            self.clock = clock
 
     def __repr__(self):
         """Represent detailed ZabbixMetric view."""
