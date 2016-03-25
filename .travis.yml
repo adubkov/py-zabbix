@@ -11,20 +11,21 @@ python:
   - "3.5"
 
 env:
-  - COMPOSE_VERSION: 1.4.1
+  - ZABBIX_VERSION: 2
+  - ZABBIX_VERSION: 3
 
 before_install:
- - curl -L https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+ - curl -L https://github.com/docker/compose/releases/download/1.4.1/docker-compose-`uname -s`-`uname -m` > docker-compose
  - chmod +x docker-compose
  - sudo mv docker-compose /usr/local/bin
- - cd tests/data/ && docker-compose up -d
- - cd ../../
+ - cd tests/data/Zabbix${ZABBIX_VERSION} && docker-compose up -d
+ - cd ../../../
 
 install:
   - pip install coveralls
 
 script:
-  - sleep 5
+  - while ! nc -z 127.0.0.1 10051; do sleep 1; done
   - coverage run setup.py test
 
 after_success:
