@@ -1,16 +1,9 @@
 #!/usr/bin/env python
 from setuptools import setup
-
-import os
-
-base_dir = os.path.dirname(__file__)
-
-about = {}
-with open(os.path.join(base_dir, 'pyzabbix', 'version.py')) as f:
-    exec(f.read(), about)
+from pyzabbix import __version__
 
 setup(name='py-zabbix',
-      version=about['__version__'],
+      version=__version__,
       description='Python modules to work with zabbix.',
       url='https://github.com/blacked/py-zabbix',
       author='Alexey Dubkov',

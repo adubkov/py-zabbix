@@ -3,6 +3,18 @@ import json
 from zabbix.api import ZabbixAPI
 from mock import patch
 
+# For Python 2 and 3 compatibility
+try:
+    import urllib2
+    urlopen = 'urllib2.urlopen'
+    response_type = str
+except ImportError:
+    # Since Python 3, urllib2.Request and urlopen were moved to
+    # the urllib.request.
+    #import urllib.request as urllib2
+    response_type = bytes
+    urlopen = 'urllib.request.urlopen'
+
 class MockResponse(object):
 
     def __init__(self, resp_data, code=200, msg='OK'):
@@ -12,7 +24,7 @@ class MockResponse(object):
         self.headers = {'content-type': 'text/plain; charset=utf-8'}
 
     def read(self):
-        return self.resp_data
+        return response_type(self.resp_data.encode('utf-8'))
 
     def getcode(self):
         return self.code
@@ -21,7 +33,7 @@ class ZabbixAPITest(unittest.TestCase):
 
     def setUp(self):
         "Mock urllib2.urlopen"
-        self.patcher = patch('urllib2.urlopen')
+        self.patcher = patch(urlopen)
         self.urlopen_mock = self.patcher.start()
 
     def test_api_version(self):
