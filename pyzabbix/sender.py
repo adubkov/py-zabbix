@@ -61,7 +61,7 @@ class ZabbixMetric(object):
         self.host = str(host)
         self.key = str(key)
         self.value = str(value)
-        if clock is not None:
+        if clock:
             self.clock = clock
 
     def __repr__(self):
