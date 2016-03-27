@@ -4,7 +4,7 @@ from pyzabbix import __version__
 
 setup(name='py-zabbix',
       version=__version__,
-      description='Python modules to work with zabbix.',
+      description='Python module to work with zabbix.',
       url='https://github.com/blacked/py-zabbix',
       author='Alexey Dubkov',
       author_email='alexey.dubkov@gmail.com',

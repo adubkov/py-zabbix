@@ -18,8 +18,8 @@ before_install:
  - curl -L https://github.com/docker/compose/releases/download/1.4.1/docker-compose-`uname -s`-`uname -m` > docker-compose
  - chmod +x docker-compose
  - sudo mv docker-compose /usr/local/bin
- - cd tests/data/Zabbix${ZABBIX_VERSION} && docker-compose up -d
- - cd ../../../
+ - pushd tests/data/Zabbix${ZABBIX_VERSION} && docker-compose up -d
+ - popd
 
 install:
   - pip install coveralls

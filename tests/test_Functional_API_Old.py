@@ -9,8 +9,8 @@ from pyzabbix import ZabbixAPIException
 class FunctionalAPI(TestCase):
     def test_LoginToServer(self):
         try:
-            zapi = ZabbixAPI(url='http://127.0.0.1',
-                             user='Admin',
-                             password='zabbix')
+            ZabbixAPI(url='http://127.0.0.1',
+                      user='Admin',
+                      password='zabbix')
         except ZabbixAPIException:
             self.fail('Can\'t login to Zabbix')

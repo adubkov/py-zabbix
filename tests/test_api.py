@@ -1,19 +1,18 @@
-import unittest
 import json
-from zabbix.api import ZabbixAPI
+
+from unittest import TestCase
+from pyzabbix import ZabbixAPI
 from mock import patch
+from sys import version_info
 
 # For Python 2 and 3 compatibility
-try:
-    import urllib2
+if version_info[0] == 2:
     urlopen = 'urllib2.urlopen'
     response_type = str
-except ImportError:
-    # Since Python 3, urllib2.Request and urlopen were moved to
-    # the urllib.request.
-    #import urllib.request as urllib2
+elif version_info[0] >= 3:
     response_type = bytes
     urlopen = 'urllib.request.urlopen'
+
 
 class MockResponse(object):
 
@@ -29,7 +28,8 @@ class MockResponse(object):
     def getcode(self):
         return self.code
 
-class ZabbixAPITest(unittest.TestCase):
+
+class TestZabbixAPI(TestCase):
 
     def setUp(self):
         "Mock urllib2.urlopen"
@@ -37,49 +37,49 @@ class ZabbixAPITest(unittest.TestCase):
         self.urlopen_mock = self.patcher.start()
 
     def test_api_version(self):
-        ret = { 'result': '2.2.5' }
-        self.urlopen_mock.return_value =  MockResponse(json.dumps(ret))
+        ret = {'result': '2.2.5'}
+        self.urlopen_mock.return_value = MockResponse(json.dumps(ret))
         response = ZabbixAPI().api_version()
         self.assertEqual(response, '2.2.5')
 
     def test_login(self):
-        req = { 'user': 'admin', 'password': 'zabbix'}
-        ret = { 'jsonrpc': '2.0',
-                'result': '0424bd59b807674191e7d77572075f33',
-                'id': 1 }
-        self.urlopen_mock.return_value =  MockResponse(json.dumps(ret))
+        req = {'user': 'admin', 'password': 'zabbix'}
+        ret = {
+            'jsonrpc': '2.0',
+            'result': '0424bd59b807674191e7d77572075f33',
+            'id': 1
+        }
+        self.urlopen_mock.return_value = MockResponse(json.dumps(ret))
         response = ZabbixAPI().user.login(**req)
         self.assertEqual(response, '0424bd59b807674191e7d77572075f33')
 
     def test_do_request(self):
         req = 'apiinfo.version'
-        ret = { 'jsonrpc': '2.0',
-                'result': '2.2.5',
-                'id': 1 }
-        self.urlopen_mock.return_value =  MockResponse(json.dumps(ret))
+        ret = {
+            'jsonrpc': '2.0',
+            'result': '2.2.5',
+            'id': 1
+        }
+        self.urlopen_mock.return_value = MockResponse(json.dumps(ret))
         response = ZabbixAPI().do_request(req)
         self.assertEqual(response, ret)
 
     def test_get_id_item(self):
-        req = 'apiinfo.version'
         ret = {
-                "jsonrpc": "2.0",
-                "result": [
-                {
-                        "itemid": "23298",
-                        "hostid": "10084",
-                        "name": "Test Item",
-                        "key_": "system.cpu.switches",
-                        "description": "",
-                }],
-                'id': 1,
+            'jsonrpc': '2.0',
+            'result':
+            [{
+                'itemid': '23298',
+                'hostid': '10084',
+                'name': 'Test Item',
+                'key_': 'system.cpu.switches',
+                'description': '',
+            }],
+            'id': 1,
         }
-        self.urlopen_mock.return_value =  MockResponse(json.dumps(ret))
+        self.urlopen_mock.return_value = MockResponse(json.dumps(ret))
         response = ZabbixAPI().get_id('item', item='Test Item')
         self.assertEqual(response, 23298)
 
     def tearDown(self):
         self.patcher.stop()
-
-if __name__ == '__main__':
-    unittest.main(verbosity=2)
