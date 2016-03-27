@@ -23,12 +23,6 @@ class ZabbixMetricTests(TestCase):
         self.assertEqual(zm.key, 'key1')
         self.assertEqual(zm.clock, 1457358608)
 
-    def test_metrics_init_auto_time(self):
-        zm = ZabbixMetric('host1', 'key1', 100500)
-        self.assertEqual(zm.host, 'host1')
-        self.assertEqual(zm.key, 'key1')
-        self.assertEqual(len(re.search('^(\d*)$', zm.clock).groups()), 1)
-
     def test_metrics_repr(self):
         zm = ZabbixMetric('host1', 'key1', 100500)
         zm_repr = json.loads(zm.__repr__())
