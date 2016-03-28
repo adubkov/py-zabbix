@@ -8,22 +8,22 @@ from sys import version_info
 # For Python 2 and 3 compatibility
 if version_info[0] == 2:
     urlopen = 'urllib2.urlopen'
-    response_type = str
+    res_type = str
 elif version_info[0] >= 3:
-    response_type = bytes
+    res_type = bytes
     urlopen = 'urllib.request.urlopen'
 
 
 class MockResponse(object):
 
-    def __init__(self, resp_data, code=200, msg='OK'):
-        self.resp_data = resp_data
+    def __init__(self, ret, code=200, msg='OK'):
+        self.ret = ret
         self.code = code
         self.msg = msg
         self.headers = {'content-type': 'text/plain; charset=utf-8'}
 
     def read(self):
-        return response_type(self.resp_data.encode('utf-8'))
+        return res_type(self.ret.encode('utf-8'))
 
     def getcode(self):
         return self.code
@@ -39,8 +39,8 @@ class TestZabbixAPI(TestCase):
     def test_api_version(self):
         ret = {'result': '2.2.5'}
         self.urlopen_mock.return_value = MockResponse(json.dumps(ret))
-        response = ZabbixAPI().api_version()
-        self.assertEqual(response, '2.2.5')
+        res = ZabbixAPI().api_version()
+        self.assertEqual(res, '2.2.5')
 
     def test_login(self):
         req = {'user': 'admin', 'password': 'zabbix'}
@@ -50,8 +50,8 @@ class TestZabbixAPI(TestCase):
             'id': 1
         }
         self.urlopen_mock.return_value = MockResponse(json.dumps(ret))
-        response = ZabbixAPI().user.login(**req)
-        self.assertEqual(response, '0424bd59b807674191e7d77572075f33')
+        res = ZabbixAPI().user.login(**req)
+        self.assertEqual(res, '0424bd59b807674191e7d77572075f33')
 
     def test_do_request(self):
         req = 'apiinfo.version'
@@ -61,8 +61,8 @@ class TestZabbixAPI(TestCase):
             'id': 1
         }
         self.urlopen_mock.return_value = MockResponse(json.dumps(ret))
-        response = ZabbixAPI().do_request(req)
-        self.assertEqual(response, ret)
+        res = ZabbixAPI().do_request(req)
+        self.assertEqual(res, ret)
 
     def test_get_id_item(self):
         ret = {
@@ -78,8 +78,8 @@ class TestZabbixAPI(TestCase):
             'id': 1,
         }
         self.urlopen_mock.return_value = MockResponse(json.dumps(ret))
-        response = ZabbixAPI().get_id('item', item='Test Item')
-        self.assertEqual(response, 23298)
+        res = ZabbixAPI().get_id('item', item='Test Item')
+        self.assertEqual(res, 23298)
 
     def tearDown(self):
         self.patcher.stop()

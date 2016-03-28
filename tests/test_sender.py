@@ -8,7 +8,7 @@ from unittest import TestCase, skip
 try:
     from mock import patch, call, mock_open
     autospec = None
-except Exception:
+except ImportError:
     from unittest.mock import patch, call, mock_open
     autospec = True
 
