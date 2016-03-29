@@ -3,7 +3,7 @@ import os
 from unittest import TestCase, skipIf
 from time import time as now
 
-from pyzabbix import ZabbixMetric, ZabbixSender
+from pyzabbix import ZabbixMetric, ZabbixSender, ZabbixResponse
 
 
 @skipIf('TRAVIS' not in os.environ.keys(), "Travis CI test")
@@ -16,4 +16,5 @@ class FunctionalSender(TestCase):
         ]
 
         z = ZabbixSender('127.0.0.1', 10051).send(m)
-        self.assertEqual(z, True)
+        print(z.__repr__())
+        self.assertIsInstance(z, ZabbixResponse)
