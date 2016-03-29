@@ -41,6 +41,8 @@ logger.addHandler(null_handler)
 
 
 class ZabbixResponse(object):
+    """The :class:`ZabbixResponse` contains the parsed response from Zabbix.
+    """
     def __init__(self):
         self.total = 0
         self.failed = 0
@@ -51,6 +53,7 @@ class ZabbixResponse(object):
         self._regex = re.compile(r'processed: (\d*); failed: (\d*); total: (\d*); seconds spent: (\d*\.\d*)')
 
     def __repr__(self):
+        """Represent detailed ZabbixResponse view."""
         result = json.dumps({'processed': self.processed,
                              'failed': self.failed,
                              'total': self.total,
@@ -59,6 +62,9 @@ class ZabbixResponse(object):
         return result
 
     def _load(self, response):
+        """Reads the values of the response from the server
+        and assigns them to class fields
+        """
         info = response.get('info')
         res = self._regex.search(info)
 
