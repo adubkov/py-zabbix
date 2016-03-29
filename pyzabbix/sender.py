@@ -17,10 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with py-zabbix. If not, see <http://www.gnu.org/licenses/>.
 
+from decimal import Decimal
 import json
 import logging
 import socket
 import struct
+import re
 import time
 
 # For python 2 and 3 compatibility
@@ -36,6 +38,36 @@ from .logger import NullHandler
 null_handler = NullHandler()
 logger = logging.getLogger(__name__)
 logger.addHandler(null_handler)
+
+
+class ZabbixResponse(object):
+    def __init__(self):
+        self.total = 0
+        self.failed = 0
+        self.processed = 0
+        self.time = 0
+        self.chunk = 0
+
+        self._regex = re.compile(r'processed: (\d*); failed: (\d*); total: (\d*); seconds spent: (\d*\.\d*)')
+
+    def __repr__(self):
+        result = json.dumps({'processed': self.processed,
+                             'failed': self.failed,
+                             'total': self.total,
+                             'time': str(self.time),
+                             'chunk': self.chunk})
+        return result
+
+    def _load(self, response):
+        info = response.get('info')
+        res = self._regex.search(info)
+
+        self.chunk += 1
+
+        self.processed += int(res.group(1))
+        self.failed += int(res.group(2))
+        self.total += int(res.group(3))
+        self.time += Decimal(res.group(4))
 
 
 class ZabbixMetric(object):
@@ -270,7 +302,7 @@ class ZabbixSender(object):
         :return: `True` if messages was sent successful, else `False`.
         """
 
-        result = None
+        result = ZabbixResponse()
 
         messages = self._create_messages(metrics)
         request = self._create_request(messages)
@@ -297,7 +329,7 @@ class ZabbixSender(object):
             logger.debug('%s response: %s', host_addr, response)
 
             if response and response.get('response') == 'success':
-                result = True
+                result._load(response)
             else:
                 logger.debug('Response error: %s}', response)
                 raise Exception(response)
