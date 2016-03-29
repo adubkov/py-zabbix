@@ -16,5 +16,9 @@ class FunctionalSender(TestCase):
         ]
 
         z = ZabbixSender('127.0.0.1', 10051).send(m)
-        print(z.__repr__())
+
         self.assertIsInstance(z, ZabbixResponse)
+        self.assertEqual(z.total, 2)
+        self.assertEqual(z.processed, 2)
+        self.assertEqual(z.failed, 0)
+        self.assertEqual(z.chunk, 1)
