@@ -44,36 +44,53 @@ class ZabbixResponse(object):
     """The :class:`ZabbixResponse` contains the parsed response from Zabbix.
     """
     def __init__(self):
-        self.total = 0
-        self.failed = 0
-        self.processed = 0
-        self.time = 0
-        self.chunk = 0
+        self._processed = 0
+        self._failed = 0
+        self._total = 0
+        self._time = 0
+        self._chunk = 0
 
         self._regex = re.compile(r'processed: (\d*); failed: (\d*); total: (\d*); seconds spent: (\d*\.\d*)')
 
     def __repr__(self):
         """Represent detailed ZabbixResponse view."""
-        result = json.dumps({'processed': self.processed,
-                             'failed': self.failed,
-                             'total': self.total,
-                             'time': str(self.time),
-                             'chunk': self.chunk})
+        result = json.dumps({'processed': self._processed,
+                             'failed': self._failed,
+                             'total': self._total,
+                             'time': str(self._time),
+                             'chunk': self._chunk})
         return result
 
-    def _load(self, response):
-        """Reads the values of the response from the server
-        and assigns them to class fields
-        """
+    def parse(self, response):
+        """Parse zabbix response."""
         info = response.get('info')
         res = self._regex.search(info)
 
-        self.chunk += 1
+        self._processed += int(res.group(1))
+        self._failed += int(res.group(2))
+        self._total += int(res.group(3))
+        self._time += Decimal(res.group(4))
+        self._chunk += 1
 
-        self.processed += int(res.group(1))
-        self.failed += int(res.group(2))
-        self.total += int(res.group(3))
-        self.time += Decimal(res.group(4))
+    @property
+    def processed(self):
+        return self._processed
+
+    @property
+    def failed(self):
+        return self._failed
+
+    @property
+    def total(self):
+        return self._total
+
+    @property
+    def time(self):
+        return self._time
+
+    @property
+    def chunk(self):
+        return self._chunk
 
 
 class ZabbixMetric(object):
@@ -335,7 +352,7 @@ class ZabbixSender(object):
             logger.debug('%s response: %s', host_addr, response)
 
             if response and response.get('response') == 'success':
-                result._load(response)
+                result.parse(response)
             else:
                 logger.debug('Response error: %s}', response)
                 raise Exception(response)
