@@ -12,7 +12,17 @@ except ImportError:
     from unittest.mock import patch, call, mock_open
     autospec = True
 
-from pyzabbix import ZabbixMetric, ZabbixSender
+from pyzabbix import ZabbixMetric, ZabbixSender, ZabbixResponse
+
+
+class TestZabbixResponse(TestCase):
+    def test_init(self):
+        zr = ZabbixResponse()
+        self.assertEqual(zr.failed, 0)
+        self.assertEqual(zr.processed, 0)
+        self.assertEqual(zr.time, 0)
+        self.assertEqual(zr.total, 0)
+        self.assertEqual(zr.chunk, 0)
 
 
 class TestZabbixMetric(TestCase):
@@ -171,7 +181,10 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         zm = ZabbixMetric('host1', 'key1', 100500, 1457358608)
         zs = ZabbixSender()
         result = zs.send([zm])
-        self.assertTrue(result)
+        self.assertIsInstance(result, ZabbixResponse)
+        self.assertEqual(result.chunk, 1)
+        self.assertEqual(result.total, 10)
+        self.assertEqual(result.failed, 10)
 
     @patch('pyzabbix.sender.socket.socket', autospec=autospec)
     def test_send_sendall_exception(self, mock_socket):
