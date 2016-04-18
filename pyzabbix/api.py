@@ -212,10 +212,16 @@ class ZabbixAPI(object):
 
         try:
             # Use context to support self-signed certs
-            if sys.version_info[0:3] >= (2, 7, 9):
-                res = urllib2.urlopen(req, context=ctx)
+            if sys.version_info[0] == 2:
+                if sys.version_info[0:3] >= (2, 7, 9):
+                    res = urllib2.urlopen(req, context=ctx)
+                else:
+                    res = urllib2.urlopen(req)
             else:
-                res = urllib2.urlopen(req)
+                if sys.version_info[0:3] >= (3, 4, 3):
+                    res = urllib2.urlopen(req, context=ctx)
+                else:
+                    res = urllib2.urlopen(req)
 
             res_str = res.read().decode('utf-8')
             res_json = json.loads(res_str)
