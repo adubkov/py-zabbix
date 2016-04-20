@@ -16,7 +16,7 @@ class FunctionalAPI(TestCase):
 
     def test_LoginToServerSSL(self):
         try:
-            ZabbixAPI(url='http://127.0.0.1',
+            ZabbixAPI(url='https://127.0.0.1',
                       user='Admin',
                       password='zabbix')
         except ZabbixAPIException:
