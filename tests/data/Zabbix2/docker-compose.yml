@@ -3,13 +3,17 @@ zabbix-db:
   container_name: zabbix-db
 
 zabbix:
-  image: zabbix/zabbix-2.4
+  image: zabbix/zabbix-3.0:latest
   container_name: zabbix
   ports:
     - "80:80"
+    - "443:443"
     - "10051:10051"
   links:
     - zabbix-db:zabbix.db
+  volumes:
+    - "../default.conf:/etc/nginx/hosts.d/default.conf"
+    - "../ssl:/usr/local/share/zabbix/ssl"
   environment:
     - ZS_DBHost=zabbix.db
     - ZS_DBUser=zabbix
