@@ -1,4 +1,4 @@
-|Build Status| |PyPi downloads| |PyPi version| |License|
+|Build Status| |Coverage| |PyPi downloads| |PyPi version|
 
 Zabbix module for Python
 ========================
@@ -61,9 +61,9 @@ ZabbixSender
 
 .. |Build Status| image:: https://travis-ci.org/blacked/py-zabbix.svg?branch=master
    :target: https://travis-ci.org/blacked/py-zabbix
+.. |Coverage| image:: https://coveralls.io/repos/github/blacked/py-zabbix/badge.svg?branch=master
+   :target: https://coveralls.io/github/blacked/py-zabbix?branch=master
 .. |PyPi downloads| image:: https://img.shields.io/pypi/dm/py-zabbix.svg
    :target: https://pypi.python.org/pypi/py-zabbix/
 .. |PyPi version| image:: https://img.shields.io/pypi/v/py-zabbix.svg
    :target: https://pypi.python.org/pypi/py-zabbix/
-.. |License| image:: https://img.shields.io/github/license/blacked/py-zabbix.svg
-   :target: https://github.com/blacked/py-zabbix/blob/master/LICENSE
