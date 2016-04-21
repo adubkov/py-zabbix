@@ -287,21 +287,22 @@ class ZabbixAPI(object):
         type_ = '{item_type}.get'.format(item_type=item_type)
 
         item_filter_name = {
+            'mediatype': 'description',
             'trigger': 'description',
             'triggerprototype': 'description',
-            'mediatype': 'description',
             'user': 'alias',
             'usermacro': 'macro',
         }
 
         item_id_name = {
-            'usermacro': 'hostmacro',
-            'usergroup': 'usrgrp',
-            'hostgroup': 'group',
             'discoveryrule': 'item',
             'graphprototype': 'graph',
+            'hostgroup': 'group',
             'itemprototype': 'item',
+            'map': 'selement',
             'triggerprototype': 'trigger',
+            'usergroup': 'usrgrp',
+            'usermacro': 'hostmacro',
         }
 
         filter_ = {
