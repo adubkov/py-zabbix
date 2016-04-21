@@ -1,7 +1,7 @@
 import json
 
 from unittest import TestCase
-from pyzabbix import ZabbixAPI
+from pyzabbix import ZabbixAPI, ssl_context_compat
 from mock import patch
 from sys import version_info
 
@@ -35,6 +35,18 @@ class TestZabbixAPI(TestCase):
         "Mock urllib2.urlopen"
         self.patcher = patch(urlopen)
         self.urlopen_mock = self.patcher.start()
+
+    def test_decorator_ssl_context_compat(self):
+        @ssl_context_compat
+        def test_decorator(*args, **kwargs):
+            def response(*args, **kwargs):
+                return args, kwargs
+            return response(*args, **kwargs)
+
+        arg, context = test_decorator(True)
+        self.assertIs(arg[0], True)
+        self.assertIn('context', context, msg='SSL context is missing.')
+        self.assertIsNotNone(context.get('context'), msg='SSL context is None.')
 
     def test_api_version(self):
         ret = {'result': '2.2.5'}

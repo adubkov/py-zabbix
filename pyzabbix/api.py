@@ -84,6 +84,36 @@ class ZabbixAPIObjectClass(object):
 
         return fn
 
+def ssl_context_compat(func):
+    def inner(req):
+        # We shoul explicitly disable cert verification to support
+        # self-signed certs with urllib2 since Python 2.7.9 and 3.4.3
+
+        default_version = (2, 7, 9)
+        version = {
+            2: default_version,
+            3: (3, 4, 3),
+        }
+
+        python_version = sys.version_info[0]
+        minimum_version = version.get(python_version, default_version)
+
+        if sys.version_info[0:3] >= minimum_version:
+            # Create default context to skip SSL cert verification.
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+            res = func(req, context=ctx)
+        else:
+            res = func(req)
+
+        return res
+
+    return inner
+
+@ssl_context_compat
+def urlopen(*args, **kwargs):
+    return urllib2.urlopen(*args, **kwargs)
 
 class ZabbixAPI(object):
     """ZabbixAPI class, implement interface to zabbix api.
@@ -187,16 +217,6 @@ class ZabbixAPI(object):
             and (method not in ('apiinfo.version', 'user.login'))):
             request_json['auth'] = self.auth
 
-        # We shoul explicitly disable cert verification to support
-        # self-signed certs with urllib2 since Python 2.7.9
-        if sys.version_info[0:3] >= (2, 7, 9):
-            # Create default context to skip SSL cert verification.
-            ctx = ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = ssl.CERT_NONE
-        else:
-            ctx = None
-
         logger.debug(
             'urllib2.Request({0}, {1})'.format(
                 self.url,
@@ -211,12 +231,7 @@ class ZabbixAPI(object):
         req.add_header('Content-Type', 'application/json-rpc')
 
         try:
-            # Use context to support self-signed certs
-            if sys.version_info[0:3] >= (2, 7, 9):
-                res = urllib2.urlopen(req, context=ctx)
-            else:
-                res = urllib2.urlopen(req)
-
+            res = urlopen(req)
             res_str = res.read().decode('utf-8')
             res_json = json.loads(res_str)
         except ValueError as e:
@@ -272,21 +287,22 @@ class ZabbixAPI(object):
         type_ = '{item_type}.get'.format(item_type=item_type)
 
         item_filter_name = {
+            'mediatype': 'description',
             'trigger': 'description',
             'triggerprototype': 'description',
-            'mediatype': 'description',
             'user': 'alias',
             'usermacro': 'macro',
         }
 
         item_id_name = {
-            'usermacro': 'hostmacro',
-            'usergroup': 'usrgrp',
-            'hostgroup': 'group',
             'discoveryrule': 'item',
             'graphprototype': 'graph',
+            'hostgroup': 'group',
             'itemprototype': 'item',
+            'map': 'selement',
             'triggerprototype': 'trigger',
+            'usergroup': 'usrgrp',
+            'usermacro': 'hostmacro',
         }
 
         filter_ = {
