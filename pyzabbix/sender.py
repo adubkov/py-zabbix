@@ -118,7 +118,7 @@ class ZabbixMetric(object):
         self.value = str(value)
         if clock:
             if isinstance(clock, float):
-                print('float')
+                self.clock = int('float')
             elif isinstance(clock, int):
                 self.clock = clock
             else:
