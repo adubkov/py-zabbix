@@ -23,7 +23,6 @@ import logging
 import socket
 import struct
 import re
-import warnings
 
 # For python 2 and 3 compatibility
 try:
@@ -117,13 +116,10 @@ class ZabbixMetric(object):
         self.key = str(key)
         self.value = str(value)
         if clock:
-            if isinstance(clock, float):
-                self.clock = int('float')
-            elif isinstance(clock, int):
-                self.clock = clock
+            if isinstance(clock, (float, int)):
+                self.clock = int(clock)
             else:
-                warnings.warn('Clock must be int type. Recived {type} type'.format(type=type(clock)))
-                self.clock = None
+                raise Exception('Clock must be time in unixtime format')
 
     def __repr__(self):
         """Represent detailed ZabbixMetric view."""

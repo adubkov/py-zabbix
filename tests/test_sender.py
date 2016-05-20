@@ -1,6 +1,6 @@
 import json
 import os
-import re
+
 import struct
 
 from unittest import TestCase, skip
@@ -13,7 +13,6 @@ except ImportError:
     autospec = True
 
 from pyzabbix import ZabbixMetric, ZabbixSender, ZabbixResponse
-import warnings
 
 
 class TestZabbixResponse(TestCase):
@@ -33,12 +32,9 @@ class TestZabbixMetric(TestCase):
         self.assertEqual(zm.key, 'key1')
         self.assertEqual(zm.clock, 1457358608)
 
-    def test_init_warn(self):
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            zm = ZabbixMetric('host1', 'key1', 100500, '1457358608.01')
-            self.assertEqual(len(w), 1)
-
+    def test_init_err(self):
+        with self.assertRaises(Exception):
+            ZabbixMetric('host1', 'key1', 100500, '1457358608.01')
 
     def test_repr(self):
         zm = ZabbixMetric('host1', 'key1', 100500)
