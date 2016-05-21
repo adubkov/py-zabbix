@@ -1,6 +1,6 @@
 import json
 import os
-import re
+
 import struct
 
 from unittest import TestCase, skip
@@ -31,6 +31,10 @@ class TestZabbixMetric(TestCase):
         self.assertEqual(zm.host, 'host1')
         self.assertEqual(zm.key, 'key1')
         self.assertEqual(zm.clock, 1457358608)
+
+    def test_init_err(self):
+        with self.assertRaises(Exception):
+            ZabbixMetric('host1', 'key1', 100500, '1457358608.01')
 
     def test_repr(self):
         zm = ZabbixMetric('host1', 'key1', 100500)
