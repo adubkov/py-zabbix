@@ -147,6 +147,9 @@ class ZabbixSender(object):
          If value is `True` then default config path will used:
          /etc/zabbix/zabbix_agentd.conf
 
+    :type chunk_size: int
+    :param chunk_size: Number of metrics send to the server at one time
+
     >>> from pyzabbix import ZabbixMetric, ZabbixSender
     >>> metrics = []
     >>> m = ZabbixMetric('localhost', 'cpu[usage]', 20)
@@ -158,7 +161,10 @@ class ZabbixSender(object):
     def __init__(self,
                  zabbix_server='127.0.0.1',
                  zabbix_port=10051,
-                 use_config=None):
+                 use_config=None,
+                 chunk_size=250):
+
+        self.chunk_size = chunk_size
 
         if use_config:
             self.zabbix_uri = self._load_from_config(use_config)
@@ -316,19 +322,16 @@ class ZabbixSender(object):
 
         return result
 
-    def send(self, metrics):
-        """Send the metrics to zabbix server.
+    def _chunk_send(self, metrics):
+        """Send the one chunk metrics to zabbix server.
 
         :type metrics: list
         :param metrics: List of :class:`zabbix.sender.ZabbixMetric` to send
             to Zabbix
 
-        :rtype: bool
-        :return: `True` if messages was sent successful, else `False`.
+        :rtype: str
+        :return: Response from Zabbix Server
         """
-
-        result = ZabbixResponse()
-
         messages = self._create_messages(metrics)
         request = self._create_request(messages)
         packet = self._create_packet(request)
@@ -353,10 +356,23 @@ class ZabbixSender(object):
             response = self._get_response(connection)
             logger.debug('%s response: %s', host_addr, response)
 
-            if response and response.get('response') == 'success':
-                result.parse(response)
-            else:
+            if response and response.get('response') != 'success':
                 logger.debug('Response error: %s}', response)
                 raise Exception(response)
 
+        return response
+
+    def send(self, metrics):
+        """Send the metrics to zabbix server.
+
+        :type metrics: list
+        :param metrics: List of :class:`zabbix.sender.ZabbixMetric` to send
+            to Zabbix
+
+        :rtype: :class:`pyzabbix.sender.ZabbixResponse`
+        :return: Parsed response from Zabbix Server
+        """
+        result = ZabbixResponse()
+        for m in range(0, len(metrics), self.chunk_size):
+            result.parse(self._chunk_send(metrics[m:m + self.chunk_size]))
         return result
