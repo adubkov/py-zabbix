@@ -147,6 +147,10 @@ class ZabbixSender(object):
          If value is `True` then default config path will used:
          /etc/zabbix/zabbix_agentd.conf
 
+    :type use_config_serveractive: bool
+    :param use_config_serveractive: if using `use_config` parameter, read from
+        the `ServerActive` option instead of `Server`.
+
     >>> from pyzabbix import ZabbixMetric, ZabbixSender
     >>> metrics = []
     >>> m = ZabbixMetric('localhost', 'cpu[usage]', 20)
@@ -158,10 +162,11 @@ class ZabbixSender(object):
     def __init__(self,
                  zabbix_server='127.0.0.1',
                  zabbix_port=10051,
-                 use_config=None):
+                 use_config=None,
+                 use_config_serveractive=False):
 
         if use_config:
-            self.zabbix_uri = self._load_from_config(use_config)
+            self.zabbix_uri = self._load_from_config(use_config, use_config_serveractive)
         else:
             self.zabbix_uri = [(zabbix_server, zabbix_port)]
 
@@ -173,16 +178,20 @@ class ZabbixSender(object):
 
         return result
 
-    def _load_from_config(self, config_file):
+    def _load_from_config(self, config_file, use_serveractive):
         """Load zabbix server ip address and port from zabbix agent file.
 
         If Server or Port variable won't be found in the file, they will be
         set up from defaults: 127.0.0.1:10051
 
         :type config_file: str
-        :param use_config: Path to zabbix_agentd.conf file to load settings
+        :param config_file: Path to zabbix_agentd.conf file to load settings
             from. If value is `True` then default config path will used:
             /etc/zabbix/zabbix_agentd.conf
+
+        :type use_serveractive: bool
+        :param use_serveractive: Read the `ServerActive` option instead of
+            `Server`.
         """
 
         if config_file and isinstance(config_file, bool):
@@ -202,7 +211,12 @@ class ZabbixSender(object):
         config_file_fp = StringIO(config_file_data)
         config = configparser.RawConfigParser(default_params)
         config.readfp(config_file_fp)
-        zabbix_server = config.get('root', 'Server')
+
+        if use_serveractive and isinstance(use_serveractive, bool):
+            zabbix_server = config.get('root', 'ServerActive')
+        else:
+            zabbix_server = config.get('root', 'Server')
+
         zabbix_port = config.get('root', 'Port')
         hosts = [server.strip() for server in zabbix_server.split(',')]
         result = [(server, zabbix_port) for server in hosts]
