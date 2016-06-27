@@ -15,10 +15,10 @@ class FunctionalSender(TestCase):
             ZabbixMetric('host1', 'key1', 33.1, cur_date_unix)
         ]
 
-        z = ZabbixSender('127.0.0.1', 10051).send(m)
+        z = ZabbixSender('127.0.0.1', 10051, chunk_size=1).send(m)
 
         self.assertIsInstance(z, ZabbixResponse)
         self.assertEqual(z.total, 2)
         self.assertEqual(z.processed, 2)
         self.assertEqual(z.failed, 0)
-        self.assertEqual(z.chunk, 1)
+        self.assertEqual(z.chunk, 2)
