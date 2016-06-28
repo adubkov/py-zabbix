@@ -46,7 +46,8 @@ class TestZabbixAPI(TestCase):
         arg, context = test_decorator(True)
         self.assertIs(arg[0], True)
         self.assertIn('context', context, msg='SSL context is missing.')
-        self.assertIsNotNone(context.get('context'), msg='SSL context is None.')
+        self.assertIsNotNone(context.get('context'),
+                             msg='SSL context is None.')
 
     def test_api_version(self):
         ret = {'result': '2.2.5'}

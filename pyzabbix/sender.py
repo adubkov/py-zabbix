@@ -48,8 +48,8 @@ class ZabbixResponse(object):
         self._total = 0
         self._time = 0
         self._chunk = 0
-
-        self._regex = re.compile(r'processed: (\d*); failed: (\d*); total: (\d*); seconds spent: (\d*\.\d*)')
+        self._regex = re.compile('processed: (\d*); failed: (\d*); total:\
+ (\d*); seconds spent: (\d*\.\d*)')
 
     def __repr__(self):
         """Represent detailed ZabbixResponse view."""
@@ -286,7 +286,12 @@ class ZabbixSender(object):
         data_len = struct.pack('<Q', len(request))
         packet = b'ZBXD\x01' + data_len + request
 
-        ord23 = lambda x: ord(x) if not isinstance(x, int) else x
+        def ord23(x):
+            if not isinstance(x, int):
+                return ord(x)
+            else:
+                return x
+
         logger.debug('Packet [str]: %s', packet)
         logger.debug('Packet [hex]: %s',
                      ':'.join(hex(ord23(x))[2:] for x in packet))
@@ -305,8 +310,8 @@ class ZabbixSender(object):
         response_header = self._receive(connection, 13)
         logger.debug('Response header: %s', response_header)
 
-        if (not response_header.startswith(b'ZBXD\x01')
-                or len(response_header) != 13):
+        if (not response_header.startswith(b'ZBXD\x01') or
+                len(response_header) != 13):
             logger.debug('Zabbix return not valid response.')
             result = False
         else:
