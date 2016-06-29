@@ -24,6 +24,15 @@ class TestZabbixResponse(TestCase):
         self.assertEqual(zr.total, 0)
         self.assertEqual(zr.chunk, 0)
 
+    def test_repr(self):
+        zr = ZabbixResponse()
+        result = json.dumps({'processed': zr._processed,
+                             'failed':    zr._failed,
+                             'total':     zr._total,
+                             'time':      str(zr._time),
+                             'chunk':     zr._chunk})
+        self.assertEqual(zr.__repr__(), result)
+
 
 class TestZabbixMetric(TestCase):
     def test_init(self):

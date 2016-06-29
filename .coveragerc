@@ -5,6 +5,7 @@ omit =
     */site-packages/*
     *.egg/*
     tests/*
+    pyzabbix/logger.py
 [report]
 exclude_lines =
     import ConfigParser as configparser
