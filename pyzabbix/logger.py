@@ -19,6 +19,7 @@
 
 import logging
 
+
 class NullHandler(logging.Handler):
     """Null logger handler.
 

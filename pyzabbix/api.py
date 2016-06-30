@@ -84,6 +84,7 @@ class ZabbixAPIObjectClass(object):
 
         return fn
 
+
 def ssl_context_compat(func):
     def inner(req):
         # We shoul explicitly disable cert verification to support
@@ -111,9 +112,11 @@ def ssl_context_compat(func):
 
     return inner
 
+
 @ssl_context_compat
 def urlopen(*args, **kwargs):
     return urllib2.urlopen(*args, **kwargs)
+
 
 class ZabbixAPI(object):
     """ZabbixAPI class, implement interface to zabbix api.
@@ -213,8 +216,7 @@ class ZabbixAPI(object):
         }
 
         # apiinfo.version and user.login doesn't require auth token
-        if (self.auth
-            and (method not in ('apiinfo.version', 'user.login'))):
+        if self.auth and (method not in ('apiinfo.version', 'user.login')):
             request_json['auth'] = self.auth
 
         logger.debug(
@@ -336,8 +338,8 @@ class ZabbixAPI(object):
             for obj in response:
                 # Check if object not belong current template
                 if args.get('templateids'):
-                    if (not obj.get('templateid') in ("0", None)
-                            or not len(obj.get('templateids', [])) == 0):
+                    if (not obj.get('templateid') in ("0", None) or
+                            not len(obj.get('templateids', [])) == 0):
                         continue
 
                 if name:
