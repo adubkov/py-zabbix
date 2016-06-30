@@ -48,8 +48,9 @@ class ZabbixResponse(object):
         self._total = 0
         self._time = 0
         self._chunk = 0
-        self._regex = re.compile('processed: (\d*); failed: (\d*); total:\
- (\d*); seconds spent: (\d*\.\d*)')
+        pattern = (r'processed: (\d*); failed: (\d*); total: (\d*); '
+                   'seconds spent: (\d*\.\d*)')
+        self._regex = re.compile(pattern)
 
     def __repr__(self):
         """Represent detailed ZabbixResponse view."""
