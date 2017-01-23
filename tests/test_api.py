@@ -2,7 +2,10 @@ import json
 
 from unittest import TestCase
 from pyzabbix import ZabbixAPI, ssl_context_compat
-from mock import patch
+try:
+    from mock import patch
+except ImportError:
+    from unittest.mock import patch
 from sys import version_info
 
 # For Python 2 and 3 compatibility

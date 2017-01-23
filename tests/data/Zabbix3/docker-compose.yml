@@ -3,7 +3,7 @@ zabbix-db:
   container_name: zabbix-db
 
 zabbix:
-  image: zabbix/zabbix-3.0:latest
+  image: maksim77/zabbix:3
   container_name: zabbix
   ports:
     - "80:80"
