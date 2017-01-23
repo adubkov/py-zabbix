@@ -135,7 +135,7 @@ class ZabbixAPI(object):
     :param password: Zabbix user password. Default `zabbix`.
 
     >>> from pyzabbix import ZabbixAPI
-    >>> z = ZabbixAPI('https://zabbix.server', user='admin', password='zabbix')
+    >>> z = ZabbixAPI('https://zabbix.server', user='Admin', password='zabbix')
     >>> # Get API Version
     >>> z.api_info.version()
     >>> u'2.2.1'
@@ -149,7 +149,7 @@ class ZabbixAPI(object):
     """
 
     def __init__(self, url='https://localhost/zabbix',
-                 use_authenticate=False, user='admin', password='zabbix'):
+                 use_authenticate=False, user='Admin', password='zabbix'):
         self.use_authenticate = use_authenticate
         self.auth = None
         self.url = url + '/api_jsonrpc.php'
