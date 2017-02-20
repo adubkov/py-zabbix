@@ -156,7 +156,7 @@ class ZabbixSender(object):
     >>> m = ZabbixMetric('localhost', 'cpu[usage]', 20)
     >>> metrics.append(m)
     >>> zbx = ZabbixSender('127.0.0.1')
-    >>> zbx.send(metric)
+    >>> zbx.send(metrics)
     """
 
     def __init__(self,
