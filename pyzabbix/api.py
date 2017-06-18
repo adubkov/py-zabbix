@@ -19,6 +19,7 @@
 
 import json
 import logging
+import os
 import ssl
 import sys
 
@@ -122,17 +123,19 @@ class ZabbixAPI(object):
     """ZabbixAPI class, implement interface to zabbix api.
 
     :type url: str
-    :param url: URL to zabbix api. Default: `https://localhost/zabbix`
+    :param url: URL to zabbix api. Default: `ZABBIX_URL` or
+        `https://localhost/zabbix`
 
     :type use_authenticate: bool
     :param use_authenticate: Use `user.authenticate` method if `True` else
         `user.login`.
 
     :type user: str
-    :param user: Zabbix user name. Default: `admin`.
+    :param user: Zabbix user name. Default: `ZABBIX_USER` or `admin`.
 
     :type password: str
-    :param password: Zabbix user password. Default `zabbix`.
+    :param password: Zabbix user password. Default `ZABBIX_PASSWORD` or
+        `zabbix`.
 
     >>> from pyzabbix import ZabbixAPI
     >>> z = ZabbixAPI('https://zabbix.server', user='Admin', password='zabbix')
@@ -148,8 +151,13 @@ class ZabbixAPI(object):
     >>> z.do_request('host.getobjects', {'status': 1})
     """
 
-    def __init__(self, url='https://localhost/zabbix',
-                 use_authenticate=False, user='Admin', password='zabbix'):
+    def __init__(self, url=None, use_authenticate=False, user=None,
+                 password=None):
+
+        url = url or os.environ.get('ZABBIX_URL') or 'https://localhost/zabbix'
+        user = user or os.environ.get('ZABBIX_USER') or 'Admin'
+        password = password or os.environ.get('ZABBIX_PASSWORD') or 'zabbix'
+
         self.use_authenticate = use_authenticate
         self.auth = None
         self.url = url + '/api_jsonrpc.php'
