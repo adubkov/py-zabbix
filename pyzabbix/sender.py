@@ -181,10 +181,10 @@ class ZabbixSender(object):
         return result
 
     def _load_from_config(self, config_file):
-        """Load zabbix server ip address and port from zabbix agent file.
+        """Load zabbix server IP address and port from zabbix agent config file.
 
-        If Server or Port variable won't be found in the file, they will be
-        set up from defaults: 127.0.0.1:10051
+        If ServerActive variable is not found in the file, it will
+        use the default: 127.0.0.1:10051
 
         :type config_file: str
         :param use_config: Path to zabbix_agentd.conf file to load settings
@@ -202,17 +202,20 @@ class ZabbixSender(object):
             config_file_data = "[root]\n" + f.read()
 
         default_params = {
-            'Server': '127.0.0.1',
-            'Port': 10051,
+            'ServerActive': '127.0.0.1:10051',
         }
 
         config_file_fp = StringIO(config_file_data)
         config = configparser.RawConfigParser(default_params)
         config.readfp(config_file_fp)
-        zabbix_server = config.get('root', 'Server')
-        zabbix_port = config.get('root', 'Port')
-        hosts = [server.strip() for server in zabbix_server.split(',')]
-        result = [(server, zabbix_port) for server in hosts]
+        zabbix_serveractives = config.get('root', 'ServerActive')
+        result = []
+        for serverport in zabbix_serveractives.split(','):
+            if ':' not in serverport:
+                serverport = "%s:%s" % (serverport.strip(), 10051)
+            server, port = serverport.split(':')
+            serverport = (server, int(port))
+            result.append(serverport)
         logger.debug("Loaded params: %s", result)
 
         return result
