@@ -212,7 +212,7 @@ class ZabbixSender(object):
         result = []
         for serverport in zabbix_serveractives.split(','):
             if ':' not in serverport:
-                serverport = "%s:%s"%(serverport.strip(), 10051)
+                serverport = "%s:%s" % (serverport.strip(), 10051)
             server, port = serverport.split(':')
             serverport = (server, int(port))
             result.append(serverport)
