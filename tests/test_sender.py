@@ -12,7 +12,7 @@ except ImportError:
     from unittest.mock import patch, call, mock_open
     autospec = True
 
-from pyzabbix import ZabbixMetric, ZabbixSender, ZabbixResponse
+from pyzabbix import ZabbixMetric, ZabbixSender, ZabbixResponse, ZabbixActiveChecksResponse, ZabbixCheck
 
 
 class TestZabbixResponse(TestCase):
@@ -51,11 +51,41 @@ class TestZabbixMetric(TestCase):
         self.assertEqual(zm_repr, zm.__dict__)
 
 
+class TestZabbixActiveChecksResponse(TestCase):
+    def test_init(self):
+        zr = ZabbixActiveChecksResponse()
+        self.assertIsNone(zr.checks)
+
+    def test_repr(self):
+        zr = ZabbixActiveChecksResponse()
+        self.assertEqual(zr.__repr__(), "")
+
+    def test_parse(self):
+        zr = ZabbixActiveChecksResponse()
+        zr.parse({'data': [
+            {'key':'cpu[usage]', 'delay':60, 'lastlogsize':5, 'mtime':9},
+            {'key':'disk[io]', 'delay':120, 'lastlogsize':8, 'mtime':4}]})
+        self.assertEqual(zr.checks[0].key, "cpu[usage]")
+        self.assertEqual(zr.checks[0].delay, 60)
+        self.assertEqual(zr.checks[0].lastlogsize, 5)
+        self.assertEqual(zr.checks[0].mtime, 9)
+        self.assertEqual(zr.checks[1].key, "disk[io]")
+        self.assertEqual(zr.checks[1].delay, 120)
+        self.assertEqual(zr.checks[1].lastlogsize, 8)
+        self.assertEqual(zr.checks[1].mtime, 4)
+
+
 class TestsZabbixSender(TestCase):
     def setUp(self):
         self.resp_header = b'ZBXD\x01\\\x00\x00\x00\x00\x00\x00\x00'
         self.resp_body = b'''{"response":"success","info":"processed: 0; \
 failed: 10; total: 10; seconds spent: 0.000078"}
+'''
+
+        self.resp_header_active_checks = b'ZBXD\x01\\\x00\x00\x00\x00\x00\x00\x00'
+        self.resp_body_active_checks = b'''{"response":"success","data":[\
+{"key":"cpu[usage]","delay":60,"lastlogsize":6,"mtime":4},\
+{"key":"disk[io]","delay":1200,"lastlogsize":9,"mtime":7}]}
 '''
 
     def test_init(self):
@@ -184,6 +214,16 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         zs = ZabbixSender()
         result = zs._get_response(mock_socket)
         self.assertFalse(result)
+
+    @patch('pyzabbix.sender.socket.socket', autospec=autospec)
+    def test_get_response_to_active_checks(self, mock_socket):
+        mock_socket.recv.side_effect = (self.resp_header_active_checks, self.resp_body_active_checks)
+
+        zs = ZabbixSender()
+        result = zs._get_response(mock_socket)
+        mock_socket.recv.assert_has_calls([call(92)])
+        self.assertEqual(result['response'], 'success')
+        self.assertIsNotNone(result['data'])
 
     @patch('pyzabbix.sender.socket.socket', autospec=autospec)
     def test_send(self, mock_socket):
