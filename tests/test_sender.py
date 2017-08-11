@@ -12,7 +12,8 @@ except ImportError:
     from unittest.mock import patch, call, mock_open
     autospec = True
 
-from pyzabbix import ZabbixMetric, ZabbixSender, ZabbixResponse, ZabbixActiveChecksResponse, ZabbixCheck
+from pyzabbix import (ZabbixMetric, ZabbixSender, ZabbixResponse,
+                      ZabbixActiveChecksResponse, ZabbixCheck)
 
 
 class TestZabbixResponse(TestCase):
@@ -63,8 +64,8 @@ class TestZabbixActiveChecksResponse(TestCase):
     def test_parse(self):
         zr = ZabbixActiveChecksResponse()
         zr.parse({'data': [
-            {'key':'cpu[usage]', 'delay':60, 'lastlogsize':5, 'mtime':9},
-            {'key':'disk[io]', 'delay':120, 'lastlogsize':8, 'mtime':4}]})
+            {'key': 'cpu[usage]', 'delay': 60, 'lastlogsize': 5, 'mtime': 9},
+            {'key': 'disk[io]', 'delay': 120, 'lastlogsize': 8, 'mtime': 4}]})
         self.assertEqual(zr.checks[0].key, "cpu[usage]")
         self.assertEqual(zr.checks[0].delay, 60)
         self.assertEqual(zr.checks[0].lastlogsize, 5)
@@ -82,7 +83,8 @@ class TestsZabbixSender(TestCase):
 failed: 10; total: 10; seconds spent: 0.000078"}
 '''
 
-        self.resp_header_active_checks = b'ZBXD\x01\\\x00\x00\x00\x00\x00\x00\x00'
+        self.resp_header_active_checks = \
+            b'ZBXD\x01\\\x00\x00\x00\x00\x00\x00\x00'
         self.resp_body_active_checks = b'''{"response":"success","data":[\
 {"key":"cpu[usage]","delay":60,"lastlogsize":6,"mtime":4},\
 {"key":"disk[io]","delay":1200,"lastlogsize":9,"mtime":7}]}
@@ -217,7 +219,10 @@ failed: 10; total: 10; seconds spent: 0.000078"}
 
     @patch('pyzabbix.sender.socket.socket', autospec=autospec)
     def test_get_response_to_active_checks(self, mock_socket):
-        mock_socket.recv.side_effect = (self.resp_header_active_checks, self.resp_body_active_checks)
+        mock_socket.recv.side_effect = (
+            self.resp_header_active_checks,
+            self.resp_body_active_checks
+        )
 
         zs = ZabbixSender()
         result = zs._get_response(mock_socket)
