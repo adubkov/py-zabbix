@@ -132,7 +132,8 @@ class ZabbixMetric(object):
 
 
 class ZabbixActiveChecksResponse(object):
-    """The :class:`ZabbixActiveChecksResponse` contains the parsed response from Zabbix.
+    """The :class:`ZabbixActiveChecksResponse`
+    contains the parsed response from Zabbix.
     """
     def __init__(self):
         self.checks = None
@@ -149,16 +150,19 @@ class ZabbixActiveChecksResponse(object):
         self.checks = []
         data = response.get('data')
         for o in data:
+            # lastlogsize is optional in 2.2; required in 2.4, 3.0, 3.2, 3.4
+            # mtime       is unused   in 3.2; required in 2.4, 3.0, 3.2, 3.4
             ch = ZabbixCheck(
                 o.get('key'),
                 o.get('delay'),
-                o.get('lastlogsize'),   # optional in 2.2; required in 2.4, 3.0, 3.2, 3.4
-                o.get('mtime'))         # unused in 3.2;   required in 2.4, 3.0, 3.2, 3.4
+                o.get('lastlogsize'),
+                o.get('mtime'))
             self.checks.append(ch)
 
 
 class ZabbixCheck(object):
-    """The :class:`ZabbixCheck` contains one active check the Zabbix server would like.
+    """The :class:`ZabbixCheck` contains one active check
+    the Zabbix server would like.
 
     :type key: str
     :param key: Key by which you will identify this metric.
@@ -499,4 +503,3 @@ class ZabbixSender(object):
         result = ZabbixActiveChecksResponse()
         result.parse(response)
         return result
-
