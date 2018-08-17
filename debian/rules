@@ -1,0 +1,11 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME=pyzabbix
+
+%:
+	dh $@ --with python2,python3 --buildsystem=pybuild
+
+# The test suite currently requires external network access, so we
+# can't enable it.
+#
+override_dh_auto_test:
