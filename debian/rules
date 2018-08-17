@@ -9,3 +9,6 @@ export PYBUILD_NAME=pyzabbix
 # can't enable it.
 #
 override_dh_auto_test:
+
+override_dh_installchangelogs:
+	dh_installchangelogs CHANGELOG.rst
