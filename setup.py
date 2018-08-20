@@ -10,7 +10,7 @@ setup(
     description='Python module to work with zabbix.',
     long_description="It's a fork of https://github.com/adubkov/py-zabbix" +
     "\n\n" +
-    open('README.rst', 'r').read() +
+    open('README.md', 'r').read() +
     '\n\n' +
     open('CHANGELOG.md', 'r').read(),
     url='https://github.com/nixargh/py-zabbix',

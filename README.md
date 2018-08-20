@@ -1,27 +1,17 @@
-|Build Status| |Coverage| |PyPi downloads| |PyPi version|
+# Zabbix module for Python
 
-Zabbix module for Python
-========================
+## Install
+```
+git clone https://github.com/nixargh/py-zabbix.git
+cd ./py-zabbix
+pip3 install -e ./
+```
 
-Install
--------
+## Examples
 
-You can install Zabbix modules for Python with pip:
+### ZabbixAPI
 
-::
-
-    pip install py-zabbix
-
-Official documentaion for `py-zabbix <https://py-zabbix.readthedocs.org/en/latest/>`__
---------------------------------------------------------------------------------------
-
-Examples
---------
-
-ZabbixAPI
-~~~~~~~~~
-
-.. code:: python
+```python
 
     from zabbix.api import ZabbixAPI
 
@@ -41,11 +31,11 @@ ZabbixAPI
     # Filter results
     hostnames1 = [host['host'] for host in result1]
     hostnames2 = [host['host'] for host in result2['result']]
+```
 
-ZabbixSender
-~~~~~~~~~~~~
+### ZabbixSender
 
-.. code:: python
+```python
 
     from pyzabbix import ZabbixMetric, ZabbixSender
 
@@ -58,12 +48,4 @@ ZabbixSender
     ]
 
     result = ZabbixSender(use_config=True).send(packet)
-
-.. |Build Status| image:: https://travis-ci.org/blacked/py-zabbix.svg?branch=master
-   :target: https://travis-ci.org/blacked/py-zabbix
-.. |Coverage| image:: https://coveralls.io/repos/github/blacked/py-zabbix/badge.svg?branch=master
-   :target: https://coveralls.io/github/blacked/py-zabbix?branch=master
-.. |PyPi downloads| image:: https://img.shields.io/pypi/dm/py-zabbix.svg
-   :target: https://pypi.python.org/pypi/py-zabbix/
-.. |PyPi version| image:: https://img.shields.io/pypi/v/py-zabbix.svg
-   :target: https://pypi.python.org/pypi/py-zabbix/
+```
