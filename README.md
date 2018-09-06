@@ -47,7 +47,7 @@ pip3 install zabbix
 session = zapi.auth
 
 other_zapi = ZabbixAPI(
-    url=url='https://localhost/zabbix/',
+    url='https://localhost/zabbix/',
     auth=session)
 
 ```
