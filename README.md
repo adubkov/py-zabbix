@@ -1,10 +1,17 @@
 # Zabbix module for Python
 
 ## Install
-```
+
+### GitHub
+```shell
 git clone https://github.com/nixargh/py-zabbix.git
 cd ./py-zabbix
 pip3 install -e ./
+```
+
+### pip
+```shell
+pip3 install zabbix
 ```
 
 ## Examples
@@ -31,6 +38,18 @@ pip3 install -e ./
     # Filter results
     hostnames1 = [host['host'] for host in result1]
     hostnames2 = [host['host'] for host in result2['result']]
+```
+
+### Add Session Reusage
+```python
+# Continuation of previous example
+
+session = zapi.auth
+
+other_zapi = ZabbixAPI(
+    url=url='https://localhost/zabbix/',
+    auth=session)
+
 ```
 
 ### ZabbixSender

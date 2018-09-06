@@ -1,14 +1,31 @@
 #!/usr/bin/env python3
 """Setup of py-zabbix."""
 
+import re
 from setuptools import setup
-from pyzabbix import __version__
+
+
+def get_variable_from_file(ffile, variable):
+    """Get variable from file."""
+    variable_re = "^{} = ['\"]([^'\"]*)['\"]".format(variable)
+    with open(ffile, "r") as ffile_obj:
+        match = re.search(variable_re, ffile_obj.read(), re.M)
+    if match:
+        return match.group(1)
+    return None
+
+
+def get_version():
+    """Get package version."""
+    return get_variable_from_file("pyzabbix/__init__.py", "__version__")
 
 setup(
-    name='py-zabbix',
-    version=__version__,
+    name='zabbix',
+    version=get_version(),
     description='Python module to work with zabbix.',
-    long_description="It's a fork of https://github.com/adubkov/py-zabbix" +
+    long_description_content_type='text/markdown',
+    long_description="**It's a fork of** "
+    "<https://github.com/adubkov/py-zabbix>." +
     "\n\n" +
     open('README.md', 'r').read() +
     '\n\n' +
