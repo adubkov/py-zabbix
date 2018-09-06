@@ -137,6 +137,9 @@ class ZabbixAPI(object):
     :param password: Zabbix user password. Default `ZABBIX_PASSWORD` or
         `zabbix`.
 
+    :type auth: str
+    :param auth: Zabbix session token. Default None.
+
     >>> from pyzabbix import ZabbixAPI
     >>> z = ZabbixAPI('https://zabbix.server', user='Admin', password='zabbix')
     >>> # Get API Version
@@ -152,16 +155,17 @@ class ZabbixAPI(object):
     """
 
     def __init__(self, url=None, use_authenticate=False, user=None,
-                 password=None):
+                 password=None, auth=None):
 
         url = url or os.environ.get('ZABBIX_URL') or 'https://localhost/zabbix'
         user = user or os.environ.get('ZABBIX_USER') or 'Admin'
         password = password or os.environ.get('ZABBIX_PASSWORD') or 'zabbix'
 
         self.use_authenticate = use_authenticate
-        self.auth = None
+        self.auth = auth
         self.url = url + '/api_jsonrpc.php'
-        self._login(user, password)
+        if not auth:
+            self._login(user, password)
         logger.debug("JSON-PRC Server: %s", self.url)
 
     def __getattr__(self, name):

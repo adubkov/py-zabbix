@@ -207,7 +207,7 @@ class ZabbixSender(object):
 
         config_file_fp = StringIO(config_file_data)
         config = configparser.RawConfigParser(default_params)
-        config.readfp(config_file_fp)
+        config.read_file(config_file_fp)
         zabbix_serveractives = config.get('root', 'ServerActive')
         result = []
         for serverport in zabbix_serveractives.split(','):
