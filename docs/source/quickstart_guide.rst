@@ -48,7 +48,7 @@ Get list of not monitored hosts from zabbix
     zapi = ZabbixAPI(url='https://localhost/zabbix/', user='admin', password='zabbix')
 
     # Get all disabled hosts
-    result = zapi.host.get(status=1)
+    result1 = zapi.host.get(status=1)
     hostnames = [host['host'] for host in result1]
 
     # Other way to get all disabled hosts
