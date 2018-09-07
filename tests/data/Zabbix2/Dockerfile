@@ -1,5 +1,5 @@
-FROM  mysql
-MAINTAINER Maksim Syomochkin <maksim77ster@gmail.com>
+FROM  mysql:5
+LABEL maintainer="Maksim Syomochkin <maksim77ster@gmail.com>"
 ENV MYSQL_ROOT_PASSWORD=root_pwd \
   MYSQL_DATABASE=zabbix \
   MYSQL_USER=zabbix \
