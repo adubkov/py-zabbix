@@ -27,7 +27,7 @@ install:
 
 script:
   - while ! nc -z 127.0.0.1 10051; do sleep 1; done
-  - sleep 60
+  - sleep 20
   - pycodestyle pyzabbix/
   - pycodestyle tests/*.py
   - coverage run setup.py test
