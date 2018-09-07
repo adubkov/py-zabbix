@@ -49,7 +49,7 @@ class ZabbixResponse(object):
         self._time = 0
         self._chunk = 0
         pattern = (r'[Pp]rocessed:? (\d*);? [Ff]ailed:? (\d*);? '
-                   '[Tt]otal:? (\d*);? [Ss]econds spent:? (\d*\.\d*)')
+                   r'[Tt]otal:? (\d*);? [Ss]econds spent:? (\d*\.\d*)')
         self._regex = re.compile(pattern)
 
     def __repr__(self):
@@ -181,7 +181,8 @@ class ZabbixSender(object):
         return result
 
     def _load_from_config(self, config_file):
-        """Load zabbix server IP address and port from zabbix agent config file.
+        """Load zabbix server IP address and port from zabbix agent config
+        file.
 
         If ServerActive variable is not found in the file, it will
         use the default: 127.0.0.1:10051
