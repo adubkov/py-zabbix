@@ -151,6 +151,9 @@ class ZabbixSender(object):
     :type chunk_size: int
     :param chunk_size: Number of metrics send to the server at one time
 
+    :type timeout: int
+    :param timeout: Number of seconds before call to Zabbix server times out
+         Default: 10
     >>> from pyzabbix import ZabbixMetric, ZabbixSender
     >>> metrics = []
     >>> m = ZabbixMetric('localhost', 'cpu[usage]', 20)
@@ -163,9 +166,11 @@ class ZabbixSender(object):
                  zabbix_server='127.0.0.1',
                  zabbix_port=10051,
                  use_config=None,
-                 chunk_size=250):
+                 chunk_size=250,
+                 timeout=10):
 
         self.chunk_size = chunk_size
+        self.timeout = timeout
 
         if use_config:
             self.zabbix_uri = self._load_from_config(use_config)
@@ -351,15 +356,21 @@ class ZabbixSender(object):
 
             # create socket object
             connection = socket.socket()
+            connection.settimeout(self.timeout)
 
-            # server and port must be tuple
-            connection.connect(host_addr)
 
             try:
+                # server and port must be tuple
+                connection.connect(host_addr)
                 connection.sendall(packet)
+            except socket.timeout:
+                logger.error('Sending failed: Connection to %s timed out after %d seconds' % (host_addr, self.timeout))
+                connection.close()
+                raise socket.timeout
             except Exception as err:
                 # In case of error we should close connection, otherwise
                 # we will close it afret data will be received.
+                logger.warn('Sending failed: %s' % err.msg)
                 connection.close()
                 raise Exception(err)
 
