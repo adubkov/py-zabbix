@@ -150,6 +150,10 @@ class ZabbixSender(object):
 
     :type chunk_size: int
     :param chunk_size: Number of metrics send to the server at one time
+    
+    :type socket_wrapper: function
+    :param socket_wrapper: to provide a socket wrapper function to be used to wrap the socket connection to zabbix
+
 
     >>> from pyzabbix import ZabbixMetric, ZabbixSender
     >>> metrics = []
@@ -163,10 +167,12 @@ class ZabbixSender(object):
                  zabbix_server='127.0.0.1',
                  zabbix_port=10051,
                  use_config=None,
-                 chunk_size=250):
+                 chunk_size=250,
+                 socket_wrapper=None
+                 ):
 
         self.chunk_size = chunk_size
-
+        self.socket_wrapper = socket_wrapper
         if use_config:
             self.zabbix_uri = self._load_from_config(use_config)
         else:
@@ -349,7 +355,11 @@ class ZabbixSender(object):
             logger.debug('Sending data to %s', host_addr)
 
             # create socket object
-            connection = socket.socket()
+            connection_ = socket.socket()
+            if self.socket_wrapper:
+                connection = self.socket_wrapper(connection_)
+            else:
+                connection = connection_
 
             # server and port must be tuple
             connection.connect(host_addr)
