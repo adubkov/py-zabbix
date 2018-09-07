@@ -18,6 +18,7 @@
 # along with py-zabbix. If not, see <http://www.gnu.org/licenses/>.
 
 from decimal import Decimal
+import inspect
 import json
 import logging
 import socket
@@ -211,8 +212,22 @@ class ZabbixSender(object):
             'ServerActive': '127.0.0.1:10051',
         }
 
+        params = dict(defaults=default_params)
+
+        try:
+            # python2
+            args = inspect.getargspec(
+                configparser.RawConfigParser.__init__).args
+        except ValueError:
+            # python3
+            args = inspect.getfullargspec(
+                configparser.RawConfigParser.__init__).kwonlyargs
+
+        if 'strict' in args:
+            params['strict'] = True
+
         config_file_fp = StringIO(config_file_data)
-        config = configparser.RawConfigParser(default_params)
+        config = configparser.RawConfigParser(**params)
         config.readfp(config_file_fp)
         zabbix_serveractives = config.get('root', 'ServerActive')
         result = []
