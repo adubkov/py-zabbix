@@ -358,19 +358,19 @@ class ZabbixSender(object):
             connection = socket.socket()
             connection.settimeout(self.timeout)
 
-
             try:
                 # server and port must be tuple
                 connection.connect(host_addr)
                 connection.sendall(packet)
             except socket.timeout:
-                logger.error('Sending failed: Connection to %s timed out after %d seconds' % (host_addr, self.timeout))
+                logger.error('Sending failed: Connection to %s timed out after'
+                             '%d seconds', host_addr, self.timeout)
                 connection.close()
                 raise socket.timeout
             except Exception as err:
                 # In case of error we should close connection, otherwise
                 # we will close it afret data will be received.
-                logger.warn('Sending failed: %s' % err.msg)
+                logger.warn('Sending failed: %s', err.msg)
                 connection.close()
                 raise Exception(err)
 
