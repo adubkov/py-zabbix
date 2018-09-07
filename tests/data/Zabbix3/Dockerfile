@@ -1,4 +1,4 @@
-FROM  mysql
+FROM  mysql:5
 MAINTAINER Maksim Syomochkin <maksim77ster@gmail.com>
 ENV MYSQL_ROOT_PASSWORD=root_pwd \
   MYSQL_DATABASE=zabbix \
