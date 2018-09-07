@@ -26,6 +26,7 @@ install:
 
 script:
   - while ! nc -z 127.0.0.1 10051; do sleep 1; done
+  - sleep 60
   - pep8 pyzabbix/
   - pep8 tests/*.py
   - coverage run setup.py test
