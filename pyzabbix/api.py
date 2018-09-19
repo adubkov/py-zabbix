@@ -255,7 +255,7 @@ class ZabbixAPI(object):
             err.update({'json': str(request_json)})
             msg_str = "Error {code}: {message}, {data} while sending {json}"
             msg = msg_str.format(**err)
-            raise ZabbixAPIException(msg, err['code'])
+            raise ZabbixAPIException(msg, err['code'], err)
 
         return res_json
 
