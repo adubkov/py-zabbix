@@ -45,8 +45,14 @@ class ZabbixAPIException(Exception):
     :32602: Invalid params (eg already exists)
     :32500: No permissions
     """
-    pass
-
+    def __init__(self, *args):
+        super(Exception, self).__init__(*args)
+        if len(args) == 1 and isinstance(args[0], dict):
+            self.error = args[0]
+            self.message = self.error['message']
+            self.code = self.error['code']
+            self.data = self.error['data']
+            self.json = self.error['json']
 
 class ZabbixAPIObjectClass(object):
     """ZabbixAPI Object class.
@@ -253,9 +259,7 @@ class ZabbixAPI(object):
         if 'error' in res_json:
             err = res_json['error'].copy()
             err.update({'json': str(request_json)})
-            msg_str = "Error {code}: {message}, {data} while sending {json}"
-            msg = msg_str.format(**err)
-            raise ZabbixAPIException(msg, err['code'])
+            raise ZabbixAPIException(err)
 
         return res_json
 
