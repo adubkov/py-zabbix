@@ -54,6 +54,7 @@ class ZabbixAPIException(Exception):
             self.data = self.error['data']
             self.json = self.error['json']
 
+
 class ZabbixAPIObjectClass(object):
     """ZabbixAPI Object class.
 
