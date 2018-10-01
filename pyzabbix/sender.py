@@ -18,6 +18,7 @@
 # along with py-zabbix. If not, see <http://www.gnu.org/licenses/>.
 
 from decimal import Decimal
+import inspect
 import json
 import logging
 import socket
@@ -49,7 +50,7 @@ class ZabbixResponse(object):
         self._time = 0
         self._chunk = 0
         pattern = (r'[Pp]rocessed:? (\d*);? [Ff]ailed:? (\d*);? '
-                   '[Tt]otal:? (\d*);? [Ss]econds spent:? (\d*\.\d*)')
+                   r'[Tt]otal:? (\d*);? [Ss]econds spent:? (\d*\.\d*)')
         self._regex = re.compile(pattern)
 
     def __repr__(self):
@@ -125,7 +126,7 @@ class ZabbixMetric(object):
     def __repr__(self):
         """Represent detailed ZabbixMetric view."""
 
-        result = json.dumps(self.__dict__)
+        result = json.dumps(self.__dict__, ensure_ascii=False)
         logger.debug('%s: %s', self.__class__.__name__, result)
 
         return result
@@ -151,6 +152,22 @@ class ZabbixSender(object):
     :type chunk_size: int
     :param chunk_size: Number of metrics send to the server at one time
 
+    :type socket_wrapper: function
+    :param socket_wrapper: to provide a socket wrapper function to be used to
+         wrap the socket connection to zabbix.
+         Example:
+            from pyzabbix import ZabbixSender
+            import ssl
+            secure_connection_option = dict(..)
+            zs = ZabbixSender(
+                zabbix_server=zabbix_server,
+                zabbix_port=zabbix_port,
+                socket_wrapper=lambda sock:ssl.wrap_socket(sock,**secure_connection_option)
+            )
+
+    :type timeout: int
+    :param timeout: Number of seconds before call to Zabbix server times out
+         Default: 10
     >>> from pyzabbix import ZabbixMetric, ZabbixSender
     >>> metrics = []
     >>> m = ZabbixMetric('localhost', 'cpu[usage]', 20)
@@ -163,10 +180,14 @@ class ZabbixSender(object):
                  zabbix_server='127.0.0.1',
                  zabbix_port=10051,
                  use_config=None,
-                 chunk_size=250):
+                 chunk_size=250,
+                 socket_wrapper=None,
+                 timeout=10):
 
         self.chunk_size = chunk_size
+        self.timeout = timeout
 
+        self.socket_wrapper = socket_wrapper
         if use_config:
             self.zabbix_uri = self._load_from_config(use_config)
         else:
@@ -181,7 +202,8 @@ class ZabbixSender(object):
         return result
 
     def _load_from_config(self, config_file):
-        """Load zabbix server IP address and port from zabbix agent config file.
+        """Load zabbix server IP address and port from zabbix agent config
+        file.
 
         If ServerActive variable is not found in the file, it will
         use the default: 127.0.0.1:10051
@@ -205,8 +227,22 @@ class ZabbixSender(object):
             'ServerActive': '127.0.0.1:10051',
         }
 
+        params = dict(defaults=default_params)
+
+        try:
+            # python2
+            args = inspect.getargspec(
+                configparser.RawConfigParser.__init__).args
+        except ValueError:
+            # python3
+            args = inspect.getfullargspec(
+                configparser.RawConfigParser.__init__).kwonlyargs
+
+        if 'strict' in args:
+            params['strict'] = True
+
         config_file_fp = StringIO(config_file_data)
-        config = configparser.RawConfigParser(default_params)
+        config = configparser.RawConfigParser(**params)
         config.readfp(config_file_fp)
         zabbix_serveractives = config.get('root', 'ServerActive')
         result = []
@@ -349,16 +385,27 @@ class ZabbixSender(object):
             logger.debug('Sending data to %s', host_addr)
 
             # create socket object
-            connection = socket.socket()
+            connection_ = socket.socket()
+            if self.socket_wrapper:
+                connection = self.socket_wrapper(connection_)
+            else:
+                connection = connection_
 
-            # server and port must be tuple
-            connection.connect(host_addr)
+            connection.settimeout(self.timeout)
 
             try:
+                # server and port must be tuple
+                connection.connect(host_addr)
                 connection.sendall(packet)
+            except socket.timeout:
+                logger.error('Sending failed: Connection to %s timed out after'
+                             '%d seconds', host_addr, self.timeout)
+                connection.close()
+                raise socket.timeout
             except Exception as err:
                 # In case of error we should close connection, otherwise
                 # we will close it afret data will be received.
+                logger.warn('Sending failed: %s', err.msg)
                 connection.close()
                 raise Exception(err)
 
