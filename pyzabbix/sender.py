@@ -240,6 +240,7 @@ class ZabbixSender(object):
         config_file_fp = StringIO(config_file_data)
         config = configparser.RawConfigParser(**params)
         config.readfp(config_file_fp)
+        # Prefer ServerActive, then try Server and fallback to defaults
         if config.has_option('root', 'ServerActive'):
             zabbix_serveractives = config.get('root', 'ServerActive')
         elif config.has_option('root', 'Server'):
