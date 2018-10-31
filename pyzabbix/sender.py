@@ -246,7 +246,7 @@ class ZabbixSender(object):
             zabbix_serveractives = config.get('root', 'Server')
         else:
             zabbix_serveractives = '127.0.0.1:10051'
-                             
+
         result = []
         for serverport in zabbix_serveractives.split(','):
             if ':' not in serverport:
