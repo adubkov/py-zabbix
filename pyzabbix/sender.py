@@ -223,11 +223,7 @@ class ZabbixSender(object):
         with open(config_file, 'r') as f:
             config_file_data = "[root]\n" + f.read()
 
-        default_params = {
-            'ServerActive': '127.0.0.1:10051',
-        }
-
-        params = dict(defaults=default_params)
+        params = {}
 
         try:
             # python2
@@ -244,7 +240,14 @@ class ZabbixSender(object):
         config_file_fp = StringIO(config_file_data)
         config = configparser.RawConfigParser(**params)
         config.readfp(config_file_fp)
-        zabbix_serveractives = config.get('root', 'ServerActive')
+        # Prefer ServerActive, then try Server and fallback to defaults
+        if config.has_option('root', 'ServerActive'):
+            zabbix_serveractives = config.get('root', 'ServerActive')
+        elif config.has_option('root', 'Server'):
+            zabbix_serveractives = config.get('root', 'Server')
+        else:
+            zabbix_serveractives = '127.0.0.1:10051'
+
         result = []
         for serverport in zabbix_serveractives.split(','):
             if ':' not in serverport:
