@@ -23,7 +23,7 @@ ZabbixAPI
 
 .. code:: python
 
-    from zabbix.api import ZabbixAPI
+    from pyzabbix.api import ZabbixAPI
 
     # Create ZabbixAPI class instance
     zapi = ZabbixAPI(url='https://localhost/zabbix/', user='admin', password='zabbix')
