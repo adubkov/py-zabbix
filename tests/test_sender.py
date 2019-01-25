@@ -222,3 +222,20 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         zs = ZabbixSender()
         with self.assertRaises(Exception):
             zs.send([zm])
+
+    @patch('pyzabbix.sender.socket.socket', autospec=autospec)
+    def test_get_active_checks(self, mock_socket):
+        mock_data = b'\x01\\\x00\x00\x00\x00\x00\x00\x00'
+        mock_socket.return_value = mock_socket
+        mock_socket.recv.side_effect = (b'ZBXD', mock_data, b'''
+{"response":"success","data":[{"key":"KEYITEM1","delay":30,"lastlogsize":0, \
+"mtime":0},{"key":"KEYITEM2","delay":300,"lastlogsize":10,"mtime":20}]}
+''')
+
+        zs = ZabbixSender()
+        result = zs.get_active_checks("host1")
+        self.assertIsInstance(result, list)
+        self.assertEqual(result[0], {"key": "KEYITEM1", "delay": 30,
+                                     "lastlogsize": 0, "mtime": 0})
+        self.assertEqual(result[1], {"key": "KEYITEM2", "delay": 300,
+                                     "lastlogsize": 10, "mtime": 20})

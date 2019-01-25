@@ -382,6 +382,18 @@ class ZabbixSender(object):
         """
         messages = self._create_messages(metrics)
         request = self._create_request(messages)
+
+        return self._send_request(request)
+
+    def _send_request(self, request):
+        """Send the formated zabbix request to zabbix server.
+
+        :type request: str
+        :param request: formatted zabbix request
+
+        :rtype: str
+        :return: Response from Zabbix Server
+        """
         packet = self._create_packet(request)
 
         for host_addr in self.zabbix_uri:
@@ -435,3 +447,22 @@ class ZabbixSender(object):
         for m in range(0, len(metrics), self.chunk_size):
             result.parse(self._chunk_send(metrics[m:m + self.chunk_size]))
         return result
+
+    def get_active_checks(self, host):
+        """Send a request to retrieve active checks
+
+        Format of returned items:
+            {'key': 'KEYITEM', 'delay': 30, 'lastlogsize': 0, 'mtime': 0}
+
+        :type host: string
+        :param host: host name to retrive active checks
+
+        :rtype: list
+        :return: List of active checks
+        """
+        request = '{{"request":"active checks","host":"{host}"}}'.format(host=host)
+        request = request.encode("utf-8")
+        logger.debug('Request: %s', request)
+
+        response = self._send_request(request)
+        return response.get("data")
