@@ -26,7 +26,7 @@ ZabbixAPI
     from pyzabbix.api import ZabbixAPI
 
     # Create ZabbixAPI class instance
-    zapi = ZabbixAPI(url='https://localhost/zabbix/', user='admin', password='zabbix')
+    zapi = ZabbixAPI(url='https://localhost/zabbix/', user='Admin', password='zabbix')
 
     # Get all monitored hosts
     result1 = zapi.host.get(monitored_hosts=1, output='extend')
@@ -52,7 +52,7 @@ Or use 'with' statement to logout automatically:
     from pyzabbix.api import ZabbixAPI
 
     # Create ZabbixAPI class instance
-    with ZabbixAPI(url='https://localhost/zabbix/', user='admin', password='zabbix') as zapi
+    with ZabbixAPI(url='https://localhost/zabbix/', user='Admin', password='zabbix') as zapi
 
         # Get all monitored hosts
         result1 = zapi.host.get(monitored_hosts=1, output='extend')

@@ -138,7 +138,7 @@ class ZabbixAPI(object):
         `user.login`.
 
     :type user: str
-    :param user: Zabbix user name. Default: `ZABBIX_USER` or `admin`.
+    :param user: Zabbix user name. Default: `ZABBIX_USER` or `'Admin'`.
 
     :type password: str
     :param password: Zabbix user password. Default `ZABBIX_PASSWORD` or

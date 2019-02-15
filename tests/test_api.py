@@ -59,7 +59,7 @@ class TestZabbixAPI(TestCase):
         self.assertEqual(res, '2.2.5')
 
     def test_login(self):
-        req = {'user': 'admin', 'password': 'zabbix'}
+        req = {'user': 'Admin', 'password': 'zabbix'}
         ret = {
             'jsonrpc': '2.0',
             'result': '0424bd59b807674191e7d77572075f33',
