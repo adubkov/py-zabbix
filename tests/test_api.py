@@ -69,6 +69,30 @@ class TestZabbixAPI(TestCase):
         res = ZabbixAPI().user.login(**req)
         self.assertEqual(res, '0424bd59b807674191e7d77572075f33')
 
+    def test_login_with(self):
+        """Test automatic user.logout when using context manager"""
+
+        login_ret = {
+            'jsonrpc': '2.0',
+            'result': '0424bd59b807674191e7d77572075f33',
+            'id': 1
+        }
+        logout_ret = {
+            "jsonrpc": "2.0",
+            "result": True,
+            "id": 1
+        }
+        self.urlopen_mock.side_effect = [MockResponse(json.dumps(login_ret)),
+                                         MockResponse(json.dumps(logout_ret))]
+
+        with ZabbixAPI() as zapi:
+            # Check you are authenticated:
+            self.assertEqual(zapi.auth, login_ret['result'])
+        # Check that you are no longer authenticated when outside:
+        self.assertEqual(zapi.auth, None)
+        # Zabbix API is accessed two times: user.login(), user.logout().
+        self.assertEqual(self.urlopen_mock.call_count, 2)
+
     def test_do_request(self):
         req = 'apiinfo.version'
         ret = {

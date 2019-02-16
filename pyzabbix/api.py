@@ -200,6 +200,21 @@ class ZabbixAPI(object):
         else:
             self.auth = self.user.login(user=user, password=password)
 
+    def _logout(self):
+        """Do logout from zabbix server."""
+
+        if self.auth:
+            logger.debug("ZabbixAPI.logout()")
+
+            if self.user.logout():
+                self.auth = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self._logout()
+
     def api_version(self):
         """Return version of server Zabbix API.
 
