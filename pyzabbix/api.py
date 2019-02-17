@@ -31,7 +31,7 @@ except ImportError:
     # the urllib.request.
     import urllib.request as urllib2
 
-from .logger import NullHandler
+from logging import NullHandler
 
 null_handler = NullHandler()
 logger = logging.getLogger(__name__)

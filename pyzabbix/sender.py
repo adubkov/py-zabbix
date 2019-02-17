@@ -33,7 +33,7 @@ except ImportError:
     from io import StringIO
     import configparser
 
-from .logger import NullHandler
+from logging import NullHandler
 
 null_handler = NullHandler()
 logger = logging.getLogger(__name__)
