@@ -23,7 +23,7 @@ import logging
 class NullHandler(logging.Handler):
     """Null logger handler.
 
-    :class:`NullHandler` will used if there are no other logger handlers.
+    :class:`NullHandler` will be used if there are no other logger handlers.
     """
 
     def emit(self, record):

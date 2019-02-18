@@ -95,7 +95,7 @@ class ZabbixAPIObjectClass(object):
 
 def ssl_context_compat(func):
     def inner(req):
-        # We shoul explicitly disable cert verification to support
+        # We should explicitly disable cert verification to support
         # self-signed certs with urllib2 since Python 2.7.9 and 3.4.3
 
         default_version = (2, 7, 9)
