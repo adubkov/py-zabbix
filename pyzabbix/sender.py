@@ -132,6 +132,70 @@ class ZabbixMetric(object):
         return result
 
 
+class ZabbixActiveChecksResponse(object):
+    """The :class:`ZabbixActiveChecksResponse`
+    contains the parsed response from Zabbix.
+    """
+    def __init__(self):
+        self.checks = None
+
+    def __repr__(self):
+        """Represent detailed ZabbixActiveChecksResponse view."""
+        if self.checks is None:
+            return ''
+        else:
+            return "[%s]" % ", ".join([ch.__repr__() for ch in self.checks])
+
+    def parse(self, response):
+        """Parse zabbix response for active checks."""
+        self.checks = []
+        data = response.get('data')
+        for o in data:
+            # lastlogsize is optional in 2.2; required in 2.4, 3.0, 3.2, 3.4
+            # mtime       is unused   in 3.2; required in 2.4, 3.0, 3.2, 3.4
+            ch = ZabbixCheck(
+                o.get('key'),
+                o.get('delay'),
+                o.get('lastlogsize'),
+                o.get('mtime'))
+            self.checks.append(ch)
+
+
+class ZabbixCheck(object):
+    """The :class:`ZabbixCheck` contains one active check
+    the Zabbix server would like.
+
+    :type key: str
+    :param key: Key by which you will identify this metric.
+
+    :type delay: int
+    :param delay: Period (in seconds) to collect this metric.
+
+    :type lastlogsize: int
+    :param lastlogsize: Point in the log file already known by the server.
+
+    :type mtime: int
+    :param mtime: Last time the server heard about this metric.
+
+    >>> from pyzabbix import ZabbixCheck
+    >>> ZabbixCheck('cpu[usage]', 60, 0, 0)
+    """
+
+    def __init__(self, key, delay, lastlogsize, mtime):
+        self.key = str(key)
+        self.delay = delay
+        self.lastlogsize = lastlogsize
+        self.mtime = mtime
+
+    def __repr__(self):
+        """Represent detailed ZabbixCheck view."""
+
+        result = json.dumps(self.__dict__)
+        logger.debug('%s: %s', self.__class__.__name__, result)
+
+        return result
+
+
 class ZabbixSender(object):
     """The :class:`ZabbixSender` send metrics to Zabbix server.
 
@@ -434,4 +498,58 @@ class ZabbixSender(object):
         result = ZabbixResponse()
         for m in range(0, len(metrics), self.chunk_size):
             result.parse(self._chunk_send(metrics[m:m + self.chunk_size]))
+        return result
+
+    def _create_active_checks_request(self, host):
+        """Create a formatted request to zabbix from a host name.
+
+        :type host: str
+        :param host: The host to ask about
+
+        :rtype: str
+        :return: Formatted zabbix request
+        """
+        request = '{"request":"active checks","host":"%s"}' % host
+        request = request.encode("utf-8")
+        logger.debug('Request: %s', request)
+        return request
+
+    def send_active_checks(self, host):
+        """Get active checks from the zabbix server.
+
+        :type host: str
+        :param host: host to ask about
+
+        :rtype: :class:`pyzabbix.sender.ZabbixActiveChecksResponse`
+        :return: Parsed response from Zabbix Server
+        """
+        request = self._create_active_checks_request(host)
+        packet = self._create_packet(request)
+
+        for host_addr in self.zabbix_uri:
+            logger.debug('Sending data to %s', host_addr)
+
+            # create socket object
+            connection = socket.socket()
+
+            # server and port must be tuple
+            connection.connect(host_addr)
+
+            try:
+                connection.sendall(packet)
+            except Exception as err:
+                # In case of error we should close connection,
+                # otherwise we will close it after data will be received.
+                connection.close()
+                raise Exception(err)
+
+            response = self._get_response(connection)
+            logger.debug('%s response: %s', host_addr, response)
+
+            if response and response.get('response') != 'success':
+                logger.debug('Response error: %s}', response)
+                raise Exception(response)
+
+        result = ZabbixActiveChecksResponse()
+        result.parse(response)
         return result
