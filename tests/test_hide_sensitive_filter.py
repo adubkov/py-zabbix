@@ -18,8 +18,8 @@ class TestHideSensitiveFilter(unittest.TestCase):
                         HideSensitiveService.HIDEMASK,
                         HideSensitiveService.HIDEMASK)
 
-        self.assertEquals(HideSensitiveService.hide_sensitive(test_message),
-                          expected)
+        self.assertEqual(HideSensitiveService.hide_sensitive(test_message),
+                         expected)
 
     def test_hide_filter_do_not_change_url(self):
 
