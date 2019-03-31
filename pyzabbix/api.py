@@ -31,11 +31,12 @@ except ImportError:
     # the urllib.request.
     import urllib.request as urllib2
 
-from .logger import NullHandler
+from .logger import NullHandler, HideSensitiveFilter, HideSensitiveService
 
 null_handler = NullHandler()
 logger = logging.getLogger(__name__)
 logger.addHandler(null_handler)
+logger.addFilter(HideSensitiveFilter())
 
 
 class ZabbixAPIException(Exception):
@@ -49,6 +50,7 @@ class ZabbixAPIException(Exception):
         super(Exception, self).__init__(*args)
         if len(args) == 1 and isinstance(args[0], dict):
             self.error = args[0]
+            self.error['json'] = HideSensitiveService.hide_sensitive(self.error['json'])
             self.message = self.error['message']
             self.code = self.error['code']
             self.data = self.error['data']
@@ -191,7 +193,7 @@ class ZabbixAPI(object):
         :param password: Zabbix user password
         """
 
-        logger.debug("ZabbixAPI.login({0},{1})".format(user, password))
+        logger.debug("ZabbixAPI.login({0},{1})".format(user, HideSensitiveService.HIDEMASK))
 
         self.auth = None
 
