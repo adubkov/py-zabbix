@@ -144,7 +144,7 @@ class ZabbixSender(object):
     :type zabbix_port: int
     :param zabbix_port: Zabbix server port. Default: `10051`
 
-    :type use_config: str
+    :type use_config: bool
     :param use_config: Path to zabbix_agentd.conf file to load settings from.
          If value is `True` then default config path will used:
          /etc/zabbix/zabbix_agentd.conf
