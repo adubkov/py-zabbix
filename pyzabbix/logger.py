@@ -16,8 +16,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with py-zabbix. If not, see <http://www.gnu.org/licenses/>.
-
 import logging
+import re
 
 
 class NullHandler(logging.Handler):
@@ -28,3 +28,48 @@ class NullHandler(logging.Handler):
 
     def emit(self, record):
         pass
+
+
+class HideSensitiveFilter(logging.Filter):
+    """Filter to hide sensitive Zabbix info (password, auth) in logs"""
+
+    def __init__(self, *args, **kwargs):
+        super(logging.Filter, self).__init__(*args, **kwargs)
+        self.hide_sensitive = HideSensitiveService.hide_sensitive
+
+    def filter(self, record):
+
+        record.msg = self.hide_sensitive(record.msg)
+        if record.args:
+            newargs = [self.hide_sensitive(arg) if isinstance(arg, str)
+                       else arg for arg in record.args]
+            record.args = tuple(newargs)
+
+        return 1
+
+
+class HideSensitiveService(object):
+    """
+    Service to hide sensitive Zabbix info (password, auth tokens)
+    Call classmethod hide_sensitive(message: str)
+    """
+
+    HIDEMASK = "********"
+    _pattern = re.compile(
+        r'(?P<key>password)["\']\s*:\s*u?["\'](?P<password>.+?)["\']'
+        r'|'
+        r'\W(?P<token>[a-z0-9]{32})')
+
+    @classmethod
+    def hide_sensitive(cls, message):
+        def hide(m):
+            if m.group('key') == 'password':
+                return m.string[m.start():m.end()].replace(
+                    m.group('password'), cls.HIDEMASK)
+            else:
+                return m.string[m.start():m.end()].replace(
+                    m.group('token'), cls.HIDEMASK)
+
+        message = re.sub(cls._pattern, hide, message)
+
+        return message

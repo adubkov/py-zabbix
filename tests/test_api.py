@@ -1,7 +1,8 @@
 import json
 
-from unittest import TestCase
-from pyzabbix import ZabbixAPI, ssl_context_compat
+import unittest
+from pyzabbix import ZabbixAPI, ZabbixAPIException, ssl_context_compat
+from pyzabbix.logger import HideSensitiveService
 try:
     from mock import patch
 except ImportError:
@@ -32,7 +33,7 @@ class MockResponse(object):
         return self.code
 
 
-class TestZabbixAPI(TestCase):
+class TestZabbixAPI(unittest.TestCase):
 
     def setUp(self):
         "Mock urllib2.urlopen"
@@ -120,6 +121,71 @@ class TestZabbixAPI(TestCase):
         self.urlopen_mock.return_value = MockResponse(json.dumps(ret))
         res = ZabbixAPI().get_id('item', item='Test Item')
         self.assertEqual(res, 23298)
+
+    @unittest.skipUnless(version_info >= (3, 4),
+                         "Test not supported for python < 3.4")
+    def test_hide_sensitive_in_logger(self):
+        """Test that logger hides passwords and auth keys (python 3.4+)"""
+
+        ret = {
+            'jsonrpc': '2.0',
+            'result': '0424bd59b807674191e7d77572075f33',
+            'id': 1
+        }
+        self.urlopen_mock.return_value = MockResponse(json.dumps(ret))
+
+        with self.assertLogs('pyzabbix', level='DEBUG') as cm:
+
+            # Create ZabbixAPI class instance
+            zapi = ZabbixAPI(url='https://localhost/zabbix',
+                             user='Admin', password='PASSWORD')
+
+            ret = {
+                'jsonrpc': '2.0',
+                'result':
+                [{
+                    'itemid': '23298',
+                    'hostid': '10084',
+                    'name': 'Test Item',
+                    'key_': 'system.cpu.switches',
+                    'description': '',
+                }],
+                'id': 1,
+            }
+            self.urlopen_mock.return_value = MockResponse(json.dumps(ret))
+            zapi.get_id('item', item='Test Item')
+
+        log_string = "".join(cm.output)
+
+        self.assertNotIn('PASSWORD', log_string)
+        self.assertNotIn('0424bd59b807674191e7d77572075f33', log_string)
+
+        # count number or passwords/token replacements
+        # (including 'DEBUG:pyzabbix.api:ZabbixAPI.login(Admin,********)')
+        self.assertEqual(log_string.count(HideSensitiveService.HIDEMASK), 4)
+
+    def test_hide_sensitive_in_exception(self):
+        """Test that exception raised hides passwords and auth keys"""
+
+        with self.assertRaises(ZabbixAPIException) as cm:
+            res = {
+                'code': -32602,
+                'message': 'Invalid params',
+                'data': 'Incorrect API "host2".',
+                'json': """
+                {'jsonrpc': '2.0',
+                 'method': 'host2.get',
+                 'params': {'monitored_hosts': 1, 'output': 'extend'},
+                 'id': '1',
+                 'auth': '0424bd59b807674191e7d77572075f33'}
+                 """
+            }
+            raise ZabbixAPIException(res)
+
+        self.assertNotIn("0424bd59b807674191e7d77572075f33", cm.exception.json)
+        self.assertEqual(
+            cm.exception.json.count(HideSensitiveService.HIDEMASK),
+            1)
 
     def tearDown(self):
         self.patcher.stop()

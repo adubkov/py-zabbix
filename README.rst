@@ -57,16 +57,35 @@ Or use 'with' statement to logout automatically:
         # Get all monitored hosts
         result1 = zapi.host.get(monitored_hosts=1, output='extend')
 
-        # Get all disabled hosts
-        result2 = zapi.do_request('host.get',
-                                {
-                                    'filter': {'status': 1},
-                                    'output': 'extend'
-                                })
+Enable logging:
 
-        # Filter results
-        hostnames1 = [host['host'] for host in result1]
-        hostnames2 = [host['host'] for host in result2['result']]
+.. code:: python
+
+    import sys
+    import logging
+    from pyzabbix.api import ZabbixAPI
+
+    # Create ZabbixAPI class instance
+    logger = logging.getLogger("pyzabbix")
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler(sys.stdout)
+    logger.addHandler(handler)
+
+    zapi = ZabbixAPI(url='http://localhost', user='Admin', password='zabbix')
+
+Note that passwords and auth tokens are hidden when raw messages are logged or raised in exceptions ( but not hidden if print() is used):
+
+.. code:: python
+
+    ZabbixAPI.login(Admin,********)
+    Call user.login method
+    urllib2.Request(http://localhost/api_jsonrpc.php, {"jsonrpc": "2.0", "method": "user.login", "params": {"user": "Admin", "password": "********"}, "id": "1"})
+    Response Body: {
+        "jsonrpc": "2.0",
+        "result": "********",
+        "id": "1"
+    }
+
 
 ZabbixSender
 ~~~~~~~~~~~~
