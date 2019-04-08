@@ -408,7 +408,7 @@ class ZabbixSender(object):
             except Exception as err:
                 # In case of error we should close connection, otherwise
                 # we will close it after data will be received.
-                logger.warn('Sending failed: %s', getattr(err, 'msg', str(err)))
+                logger.warning('Sending failed: %s', getattr(err, 'msg', str(err)))
                 connection.close()
                 raise Exception(err)
 
