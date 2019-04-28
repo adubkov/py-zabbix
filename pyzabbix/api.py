@@ -261,6 +261,9 @@ class ZabbixAPI(object):
         req = urllib2.Request(self.url, data)
         req.get_method = lambda: 'POST'
         req.add_header('Content-Type', 'application/json-rpc')
+        req.add_header('User-Agent', ' Mozilla/5.0 (Windows NT 6.1; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0')
+        if not isinstance(data, bytes):
+            req.add_header('Accept-Encoding', 'utf-8')
 
         try:
             res = urlopen(req)
