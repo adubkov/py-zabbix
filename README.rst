@@ -12,7 +12,7 @@ You can install Zabbix modules for Python with pip:
 
     pip install py-zabbix
 
-Official documentaion for `py-zabbix <https://py-zabbix.readthedocs.org/en/latest/>`__
+Official documentation for `py-zabbix <https://py-zabbix.readthedocs.org/en/latest/>`__
 --------------------------------------------------------------------------------------
 
 Examples
