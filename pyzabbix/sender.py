@@ -365,7 +365,7 @@ class ZabbixSender(object):
 
         try:
             connection.close()
-        except Exception as err:
+        except socket.error:
             pass
 
         return result
@@ -405,19 +405,19 @@ class ZabbixSender(object):
                              '%d seconds', host_addr, self.timeout)
                 connection.close()
                 raise socket.timeout
-            except Exception as err:
+            except socket.error as err:
                 # In case of error we should close connection, otherwise
                 # we will close it after data will be received.
                 logger.warn('Sending failed: %s', getattr(err, 'msg', str(err)))
                 connection.close()
-                raise Exception(err)
+                raise err
 
             response = self._get_response(connection)
             logger.debug('%s response: %s', host_addr, response)
 
             if response and response.get('response') != 'success':
                 logger.debug('Response error: %s}', response)
-                raise Exception(response)
+                raise socket.error(response)
 
         return response
 
