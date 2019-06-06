@@ -43,7 +43,7 @@ class TestZabbixMetric(TestCase):
         self.assertEqual(zm.clock, 1457358608)
 
     def test_init_err(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError):
             ZabbixMetric('host1', 'key1', 100500, '1457358608.01')
 
     def test_repr(self):

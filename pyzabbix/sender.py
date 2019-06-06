@@ -121,7 +121,7 @@ class ZabbixMetric(object):
             if isinstance(clock, (float, int)):
                 self.clock = int(clock)
             else:
-                raise Exception('Clock must be time in unixtime format')
+                raise ValueError('Clock must be time in unixtime format')
 
     def __repr__(self):
         """Represent detailed ZabbixMetric view."""
