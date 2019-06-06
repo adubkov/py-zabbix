@@ -1,5 +1,6 @@
 import json
 import os
+import socket
 
 import struct
 
@@ -179,7 +180,7 @@ failed: 10; total: 10; seconds spent: 0.000078"}
     @patch('pyzabbix.sender.socket.socket', autospec=autospec)
     def test_get_response_fail_s_close(self, mock_socket):
         mock_socket.recv.side_effect = (b'IDDQD', self.resp_body)
-        mock_socket.close.side_effect = Exception
+        mock_socket.close.side_effect = socket.error
 
         zs = ZabbixSender()
         result = zs._get_response(mock_socket)
@@ -202,11 +203,11 @@ failed: 10; total: 10; seconds spent: 0.000078"}
     @patch('pyzabbix.sender.socket.socket', autospec=autospec)
     def test_send_sendall_exception(self, mock_socket):
         mock_socket.return_value = mock_socket
-        mock_socket.sendall.side_effect = Exception
+        mock_socket.sendall.side_effect = socket.error
 
         zm = ZabbixMetric('host1', 'key1', 100500, 1457358608)
         zs = ZabbixSender()
-        with self.assertRaises(Exception):
+        with self.assertRaises(socket.error):
             zs.send([zm])
 
     @patch('pyzabbix.sender.socket.socket', autospec=autospec)
@@ -220,5 +221,5 @@ failed: 10; total: 10; seconds spent: 0.000078"}
 
         zm = ZabbixMetric('host1', 'key1', 100500, 1457358608)
         zs = ZabbixSender()
-        with self.assertRaises(Exception):
+        with self.assertRaises(socket.error):
             zs.send([zm])
