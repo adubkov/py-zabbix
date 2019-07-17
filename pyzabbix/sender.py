@@ -388,12 +388,12 @@ class ZabbixSender(object):
             logger.debug('Sending data to %s', host_addr)
 
             try:
-                # IPv6
-                connection_ = socket.socket(socket.AF_INET6)
-            except socket.error:
                 # IPv4
-                try: 
-                    connection_ = socket.socket(socket.AF_INET)
+                connection_ = socket.socket(socket.AF_INET)
+            except socket.error:
+                # IPv6
+                try:
+                    connection_ = socket.socket(socket.AF_INET6)
                 except socket.error:
                     raise Exception("Error creating socket for {host_addr}".format(host_addr=host_addr))
             if self.socket_wrapper:
