@@ -32,7 +32,7 @@ except ImportError:
     # the urllib.request.
     import urllib.request as urllib2
 
-from . import __version__
+from .version import __version__
 from .logger import NullHandler, HideSensitiveFilter, HideSensitiveService
 
 null_handler = NullHandler()
