@@ -121,7 +121,7 @@ class ZabbixMetric(object):
             if isinstance(clock, (float, int)):
                 self.clock = int(clock)
             else:
-                raise Exception('Clock must be time in unixtime format')
+                raise ValueError('Clock must be time in unixtime format')
 
     def __repr__(self):
         """Represent detailed ZabbixMetric view."""
@@ -365,7 +365,7 @@ class ZabbixSender(object):
 
         try:
             connection.close()
-        except Exception as err:
+        except socket.error:
             pass
 
         return result
@@ -387,8 +387,15 @@ class ZabbixSender(object):
         for host_addr in self.zabbix_uri:
             logger.debug('Sending data to %s', host_addr)
 
-            # create socket object
-            connection_ = socket.socket()
+            try:
+                # IPv4
+                connection_ = socket.socket(socket.AF_INET)
+            except socket.error:
+                # IPv6
+                try:
+                    connection_ = socket.socket(socket.AF_INET6)
+                except socket.error:
+                    raise Exception("Error creating socket for {host_addr}".format(host_addr=host_addr))
             if self.socket_wrapper:
                 connection = self.socket_wrapper(connection_)
             else:
@@ -405,19 +412,19 @@ class ZabbixSender(object):
                              '%d seconds', host_addr, self.timeout)
                 connection.close()
                 raise socket.timeout
-            except Exception as err:
+            except socket.error as err:
                 # In case of error we should close connection, otherwise
                 # we will close it after data will be received.
-                logger.warn('Sending failed: %s', getattr(err, 'msg', str(err)))
+                logger.warning('Sending failed: %s', getattr(err, 'msg', str(err)))
                 connection.close()
-                raise Exception(err)
+                raise err
 
             response = self._get_response(connection)
             logger.debug('%s response: %s', host_addr, response)
 
             if response and response.get('response') != 'success':
                 logger.debug('Response error: %s}', response)
-                raise Exception(response)
+                raise socket.error(response)
 
         return response
 
