@@ -5,7 +5,7 @@ from pyzabbix.version import __version__
 setup(name='py-zabbix',
       version=__version__,
       description='Python module to work with zabbix.',
-      long_description_content_type="text/markdown",
+      long_description_content_type="text/x-rst",
       long_description=open('README.rst', 'r').read(),
       url='https://github.com/blacked/py-zabbix',
       author='Alexey Dubkov',
