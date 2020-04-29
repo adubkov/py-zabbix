@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from setuptools import setup
-from pyzabbix import __version__
+from pyzabbix.version import __version__
 
 setup(name='py-zabbix',
       version=__version__,

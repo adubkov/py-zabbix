@@ -32,6 +32,7 @@ except ImportError:
     # the urllib.request.
     import urllib.request as urllib2
 
+from .version import __version__
 from .logger import NullHandler, HideSensitiveFilter, HideSensitiveService
 
 null_handler = NullHandler()
@@ -282,6 +283,7 @@ class ZabbixAPI(object):
         req = urllib2.Request(self.url, data)
         req.get_method = lambda: 'POST'
         req.add_header('Content-Type', 'application/json-rpc')
+        req.add_header('User-Agent', 'py-zabbix/{}'.format(__version__))
 
         if self.use_basic_auth:
             req.add_header("Authorization", "Basic {}".format(self.base64_cred))
