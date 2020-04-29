@@ -22,6 +22,7 @@ import logging
 import os
 import ssl
 import sys
+import base64
 
 # For Python 2 and 3 compatibility
 try:
@@ -139,6 +140,9 @@ class ZabbixAPI(object):
     :param use_authenticate: Use `user.authenticate` method if `True` else
         `user.login`.
 
+    :type use_basic_auth: bool
+    :param use_basic_auth: Using basic auth if `True`
+
     :type user: str
     :param user: Zabbix user name. Default: `ZABBIX_USER` or `'Admin'`.
 
@@ -160,7 +164,7 @@ class ZabbixAPI(object):
     >>> z.do_request('host.getobjects', {'status': 1})
     """
 
-    def __init__(self, url=None, use_authenticate=False, user=None,
+    def __init__(self, url=None, use_authenticate=False, use_basic_auth=False, user=None,
                  password=None):
 
         url = url or os.environ.get('ZABBIX_URL') or 'https://localhost/zabbix'
@@ -168,8 +172,10 @@ class ZabbixAPI(object):
         password = password or os.environ.get('ZABBIX_PASSWORD') or 'zabbix'
 
         self.use_authenticate = use_authenticate
+        self.use_basic_auth = use_basic_auth
         self.auth = None
         self.url = url + '/api_jsonrpc.php'
+        self.base64_cred = self.cred_to_base64(user, password) if self.use_basic_auth else None
         self._login(user, password)
         logger.debug("JSON-PRC Server: %s", self.url)
 
@@ -217,6 +223,19 @@ class ZabbixAPI(object):
     def __exit__(self, *args):
         self._logout()
 
+    @staticmethod
+    def cred_to_base64(user, password):
+        """Create header for basic authorization
+        :type user: str
+        :param user: Zabbix user
+
+        :type password: str
+        :param password: Zabbix user password
+        :return: str
+        """
+        base64string = base64.b64encode('{}:{}'.format(user, password).encode())
+        return base64string.decode()
+
     def api_version(self):
         """Return version of server Zabbix API.
 
@@ -263,6 +282,9 @@ class ZabbixAPI(object):
         req = urllib2.Request(self.url, data)
         req.get_method = lambda: 'POST'
         req.add_header('Content-Type', 'application/json-rpc')
+
+        if self.use_basic_auth:
+            req.add_header("Authorization", "Basic {}".format(self.base64_cred))
 
         try:
             res = urlopen(req)
