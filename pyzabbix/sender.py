@@ -235,7 +235,7 @@ class ZabbixSender(object):
                 configparser.RawConfigParser.__init__).kwonlyargs
 
         if 'strict' in args:
-            params['strict'] = True
+            params['strict'] = False
 
         config_file_fp = StringIO(config_file_data)
         config = configparser.RawConfigParser(**params)
