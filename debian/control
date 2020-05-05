@@ -1,0 +1,33 @@
+Source: py-zabbix
+Maintainer: Alexey Dubkov
+Section: python
+Priority: optional
+Build-Depends:
+ debhelper (>= 9),
+ dh-python,
+ python-all (>= 2.6.6-3),
+ python-setuptools,
+ python3-all,
+ python3-setuptools
+Standards-Version: 3.9.8
+X-Python-Version: >= 2.7
+X-Python3-Version: >= 3.3
+Homepage: https://github.com/adubkov/py-zabbix.git
+
+Package: python-pyzabbix
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ${python:Depends},
+ python-requests
+Description: Zabbix module for Python.
+
+Package: python3-pyzabbix
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+ python3-requests,
+Description: Zabbix module for Python.
+ .
+ This package contains the Python 3 version of the library.
