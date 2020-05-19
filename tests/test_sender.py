@@ -100,15 +100,17 @@ failed: 10; total: 10; seconds spent: 0.000078"}
         filename = os.path.join(folder, 'data/zabbix_agentd.conf')
         zs = ZabbixSender()
         result = zs._load_from_config(config_file=filename)
-        self.assertEqual(result, [('192.168.1.2', 10051)])
+        self.assertEqual(result, ([('192.168.1.2', 10051)], 'n150'))
 
     def test_create_messages(self):
         m = [ZabbixMetric('host1', 'key1', 1),
-             ZabbixMetric('host2', 'key2', 2)]
+             ZabbixMetric('host2', 'key2', 2),
+             ZabbixMetric('-', 'key3', 3),
+             ZabbixMetric(None, 'key4', 4)]
         zs = ZabbixSender()
         result = zs._create_messages(m)
         self.assertIsInstance(result, list)
-        self.assertEqual(len(result), 2)
+        self.assertEqual(len(result), len(m))
 
     def test_create_request(self):
         message = [

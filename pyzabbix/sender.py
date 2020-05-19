@@ -168,6 +168,12 @@ class ZabbixSender(object):
     :type timeout: int
     :param timeout: Number of seconds before call to Zabbix server times out
          Default: 10
+
+    :type agent_hostname: str
+    :param agent_hostname: Default metric host field if not specified in metric.
+         This corresponds to 'Hostname' agent configuration option.
+         Default: None
+
     >>> from pyzabbix import ZabbixMetric, ZabbixSender
     >>> metrics = []
     >>> m = ZabbixMetric('localhost', 'cpu[usage]', 20)
@@ -182,16 +188,18 @@ class ZabbixSender(object):
                  use_config=None,
                  chunk_size=250,
                  socket_wrapper=None,
-                 timeout=10):
+                 timeout=10,
+                 agent_hostname=None):
 
         self.chunk_size = chunk_size
         self.timeout = timeout
 
         self.socket_wrapper = socket_wrapper
         if use_config:
-            self.zabbix_uri = self._load_from_config(use_config)
+            self.zabbix_uri, self.agent_hostname = self._load_from_config(use_config)
         else:
             self.zabbix_uri = [(zabbix_server, zabbix_port)]
+            self.agent_hostname = agent_hostname
 
     def __repr__(self):
         """Represent detailed ZabbixSender view."""
@@ -255,9 +263,14 @@ class ZabbixSender(object):
             server, port = serverport.split(':')
             serverport = (server, int(port))
             result.append(serverport)
-        logger.debug("Loaded params: %s", result)
 
-        return result
+        agent_hostname = None
+        if config.has_option('root', 'Hostname'):
+            agent_hostname = config.get('root', 'Hostname')
+
+        logger.debug("Loaded params: %s, %s", result, agent_hostname)
+
+        return result, agent_hostname
 
     def _receive(self, sock, count):
         """Reads socket to receive data from zabbix server.
@@ -293,6 +306,8 @@ class ZabbixSender(object):
 
         # Fill the list of messages
         for m in metrics:
+            if m.host is None or m.host == '-':
+                m.host = self.agent_hostname
             messages.append(str(m))
 
         logger.debug('Messages: %s', messages)
