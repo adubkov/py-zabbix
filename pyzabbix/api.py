@@ -252,7 +252,7 @@ class ZabbixAPI(object):
         :type method: str
         :param method: ZabbixAPI method, like: `apiinfo.version`.
 
-        :type params: str
+        :type params: dict
         :param params: ZabbixAPI method arguments.
 
         >>> from pyzabbix import ZabbixAPI
