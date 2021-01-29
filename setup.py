@@ -2,6 +2,10 @@
 from setuptools import setup
 from pyzabbix.version import __version__
 
+requires = [
+    'sslpsk>=1.0.0,<2.0.0',
+]
+
 setup(name='py-zabbix',
       version=__version__,
       description='Python module to work with zabbix.',
@@ -13,6 +17,7 @@ setup(name='py-zabbix',
       test_suite='tests',
       packages=['pyzabbix', 'zabbix'],
       tests_require=['mock'],
+      install_requires=requires,
       classifiers=[
           'Development Status :: 5 - Production/Stable',
           'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
