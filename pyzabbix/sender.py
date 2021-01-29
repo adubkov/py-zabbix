@@ -24,6 +24,8 @@ import logging
 import socket
 import struct
 import re
+import functools
+import ssl
 
 # For python 2 and 3 compatibility
 try:
@@ -32,6 +34,11 @@ try:
 except ImportError:
     from io import StringIO
     import configparser
+
+try:
+    import sslpsk
+except ImportError:
+    pass
 
 from .logger import NullHandler
 
@@ -187,11 +194,25 @@ class ZabbixSender(object):
         self.chunk_size = chunk_size
         self.timeout = timeout
 
-        self.socket_wrapper = socket_wrapper
         if use_config:
             self.zabbix_uri = self._load_from_config(use_config)
+            psk_identity = self._load_from_config(use_config,'TLSPSKIdentity')
+            psk_file = self._load_from_config(use_config,'TLSPSKFile')
+            if psk_identity and psk_file:
+                with open(psk_file, "r") as psk_data:
+                    psk_txt = psk_data.readlines()[0]
+                self.socket_wrapper = functools.partial(
+                   PyZabbixPSKSocketWrapper,
+                    identity=psk_identity,  # your PSK identity
+                    psk=bytes.fromhex(
+                        psk_txt  # your PSK
+                    )
+                )
         else:
             self.zabbix_uri = [(zabbix_server, zabbix_port)]
+            self.psk_identity = None
+            self.psk_file = None
+            self.socket_wrapper = socket_wrapper
 
     def __repr__(self):
         """Represent detailed ZabbixSender view."""
@@ -201,7 +222,7 @@ class ZabbixSender(object):
 
         return result
 
-    def _load_from_config(self, config_file):
+    def _load_from_config(self, config_file, return_param='ServerActive'):
         """Load zabbix server IP address and port from zabbix agent config
         file.
 
@@ -240,22 +261,28 @@ class ZabbixSender(object):
         config_file_fp = StringIO(config_file_data)
         config = configparser.RawConfigParser(**params)
         config.readfp(config_file_fp)
-        # Prefer ServerActive, then try Server and fallback to defaults
-        if config.has_option('root', 'ServerActive'):
-            zabbix_serveractives = config.get('root', 'ServerActive')
-        elif config.has_option('root', 'Server'):
-            zabbix_serveractives = config.get('root', 'Server')
-        else:
-            zabbix_serveractives = '127.0.0.1:10051'
 
-        result = []
-        for serverport in zabbix_serveractives.split(','):
-            if ':' not in serverport:
-                serverport = "%s:%s" % (serverport.strip(), 10051)
-            server, port = serverport.split(':')
-            serverport = (server, int(port))
-            result.append(serverport)
-        logger.debug("Loaded params: %s", result)
+        result = ''
+        if return_param == 'ServerActive':
+            # Prefer ServerActive, then try Server and fallback to defaults
+            if config.has_option('root', 'ServerActive'):
+                zabbix_serveractives = config.get('root', 'ServerActive')
+            elif config.has_option('root', 'Server'):
+                zabbix_serveractives = config.get('root', 'Server')
+            else:
+                zabbix_serveractives = '127.0.0.1:10051'
+
+            result = []
+            for serverport in zabbix_serveractives.split(','):
+                if ':' not in serverport:
+                    serverport = "%s:%s" % (serverport.strip(), 10051)
+                server, port = serverport.split(':')
+                serverport = (server, int(port))
+                result.append(serverport)
+            logger.debug("Loaded params: %s", result)
+        else:
+            if config.has_option('root', return_param):
+                result = config.get('root', return_param)
 
         return result
 
@@ -442,3 +469,34 @@ class ZabbixSender(object):
         for m in range(0, len(metrics), self.chunk_size):
             result.parse(self._chunk_send(metrics[m:m + self.chunk_size]))
         return result
+
+
+class PyZabbixPSKSocketWrapper:
+    """Implements ssl.wrap_socket with PSK instead of certificates.
+
+    Proxies calls to a `socket` instance.
+    """
+
+    def __init__(self, sock, *, identity, psk):
+        self.__sock = sock
+        self.__identity = identity
+        self.__psk = psk
+
+    def connect(self, *args, **kwargs):
+        # `sslpsk.wrap_socket` must be called *after* socket.connect,
+        # while the `ssl.wrap_socket` must be called *before* socket.connect.
+        self.__sock.connect(*args, **kwargs)
+
+        # `sslv3 alert bad record mac` exception means incorrect PSK
+        self.__sock = sslpsk.wrap_socket(
+            self.__sock,
+            # https://github.com/zabbix/zabbix/blob/f0a1ad397e5653238638cd1a65a25ff78c6809bb/src/libs/zbxcrypto/tls.c#L3231
+            ssl_version=ssl.PROTOCOL_TLSv1_2,
+            # https://github.com/zabbix/zabbix/blob/f0a1ad397e5653238638cd1a65a25ff78c6809bb/src/libs/zbxcrypto/tls.c#L3179
+            ciphers="PSK-AES128-CBC-SHA",
+            psk=(self.__psk, self.__identity),
+        )
+
+    def __getattr__(self, name):
+        return getattr(self.__sock, name)
+
