@@ -151,8 +151,12 @@ class ZabbixAPI(object):
     :param password: Zabbix user password. Default `ZABBIX_PASSWORD` or
         `zabbix`.
 
+    :type api_token: str
+    :param password: Zabbix API Token.
+
     >>> from pyzabbix import ZabbixAPI
     >>> z = ZabbixAPI('https://zabbix.server', user='Admin', password='zabbix')
+    >>> # z = ZabbixAPI('https://zabbix.server', api_token='xxxx')
     >>> # Get API Version
     >>> z.api_info.version()
     >>> u'2.2.1'
@@ -166,18 +170,24 @@ class ZabbixAPI(object):
     """
 
     def __init__(self, url=None, use_authenticate=False, use_basic_auth=False, user=None,
-                 password=None):
+                 password=None, api_token=None):
 
         url = url or os.environ.get('ZABBIX_URL') or 'https://localhost/zabbix'
         user = user or os.environ.get('ZABBIX_USER') or 'Admin'
         password = password or os.environ.get('ZABBIX_PASSWORD') or 'zabbix'
+        api_token = api_token or os.environ.get('ZABBIX_API_TOKEN', None)
 
         self.use_authenticate = use_authenticate
         self.use_basic_auth = use_basic_auth
-        self.auth = None
         self.url = url + '/api_jsonrpc.php'
-        self.base64_cred = self.cred_to_base64(user, password) if self.use_basic_auth else None
-        self._login(user, password)
+
+        if api_token is not None:
+            self.auth = api_token
+        else:
+            self.auth = None
+            self.base64_cred = self.cred_to_base64(user, password) if self.use_basic_auth else None
+            self._login(user, password)
+
         logger.debug("JSON-PRC Server: %s", self.url)
 
     def __getattr__(self, name):
