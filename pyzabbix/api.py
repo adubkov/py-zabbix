@@ -290,7 +290,7 @@ class ZabbixAPI(object):
             req.add_header("Authorization", "Basic {}".format(self.base64_cred))
 
         try:
-            res = urlopen(req, self.timeout)
+            res = urlopen(req, timeout=self.timeout)
             res_str = res.read().decode('utf-8')
             res_json = json.loads(res_str)
         except ValueError as e:
