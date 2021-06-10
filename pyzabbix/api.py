@@ -98,7 +98,7 @@ class ZabbixAPIObjectClass(object):
 
 
 def ssl_context_compat(func):
-    def inner(req):
+    def inner(req, timeout=None):
         # We should explicitly disable cert verification to support
         # self-signed certs with urllib2 since Python 2.7.9 and 3.4.3
 
@@ -116,9 +116,9 @@ def ssl_context_compat(func):
             ctx = ssl.create_default_context()
             ctx.check_hostname = False
             ctx.verify_mode = ssl.CERT_NONE
-            res = func(req, context=ctx)
+            res = func(req, context=ctx, timeout=timeout)
         else:
-            res = func(req)
+            res = func(req, timeout=timeout)
 
         return res
 
@@ -166,7 +166,7 @@ class ZabbixAPI(object):
     """
 
     def __init__(self, url=None, use_authenticate=False, use_basic_auth=False, user=None,
-                 password=None):
+                 password=None, timeout=None):
 
         url = url or os.environ.get('ZABBIX_URL') or 'https://localhost/zabbix'
         user = user or os.environ.get('ZABBIX_USER') or 'Admin'
@@ -174,6 +174,7 @@ class ZabbixAPI(object):
 
         self.use_authenticate = use_authenticate
         self.use_basic_auth = use_basic_auth
+        self.timeout = timeout
         self.auth = None
         self.url = url + '/api_jsonrpc.php'
         self.base64_cred = self.cred_to_base64(user, password) if self.use_basic_auth else None
@@ -289,7 +290,7 @@ class ZabbixAPI(object):
             req.add_header("Authorization", "Basic {}".format(self.base64_cred))
 
         try:
-            res = urlopen(req)
+            res = urlopen(req, self.timeout)
             res_str = res.read().decode('utf-8')
             res_json = json.loads(res_str)
         except ValueError as e:
