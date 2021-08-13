@@ -427,6 +427,27 @@ class ZabbixSender(object):
                 raise socket.error(response)
 
         return response
+    
+    def _chunker(self, iterable):
+        """Batch `iterable` into chunks of size `chunk_size`.
+
+        :type iterable: Iterable
+        :param iterable: any iterable to be chunked
+
+        :rtype: Iterable
+        :return: Chunk generator
+        """
+        if self.chunk_size is None:
+            yield iterable
+            return
+        chunk = []
+        for item in iterable:
+            chunk.append(item)
+            if len(chunk) >= self.chunk_size:
+                yield chunk
+                chunk = []
+        if chunk:
+            yield chunk
 
     def send(self, metrics):
         """Send the metrics to zabbix server.
@@ -439,6 +460,6 @@ class ZabbixSender(object):
         :return: Parsed response from Zabbix Server
         """
         result = ZabbixResponse()
-        for m in range(0, len(metrics), self.chunk_size):
-            result.parse(self._chunk_send(metrics[m:m + self.chunk_size]))
+        for chunk in self._chunker(metrics):
+            result.parse(self._chunk_send(chunk))
         return result
