@@ -11,13 +11,13 @@ Zabbix module for Python
 ========================
 
 
-That set of modules allow to work with Zabbix in Python.
+This set of modules allows you to work with Zabbix in Python.
 
 Currently it contains:
-    * :ref:`pyzabbix.api<zabbix.api>` for work with Zabbix API.
-    * :ref:`pyzabbix.sender<zabbix.sender>` for send metrics to Zabbix.
+    * :ref:`pyzabbix.api<zabbix.api>` for working with the Zabbix API.
+    * :ref:`pyzabbix.sender<zabbix.sender>` for sending metrics to Zabbix.
 
-.. note:: `py-zabbix` do not require addition modules, it use only standard
+.. note:: `py-zabbix` does not require additional modules, it uses only standard
     Python modules.
 
 .. toctree::
