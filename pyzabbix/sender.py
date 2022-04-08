@@ -385,21 +385,29 @@ class ZabbixSender(object):
         packet = self._create_packet(request)
 
         for host_addr in self.zabbix_uri:
-            logger.debug('Sending data to %s', host_addr)
+            logger.debug("Sending data to %s", host_addr)
 
-            try:
-                # IPv4
-                connection_ = socket.socket(socket.AF_INET)
-            except socket.error:
-                # IPv6
+            host, port = host_addr
+            conn_ = None
+            for res in socket.getaddrinfo(
+                host, port, socket.AF_UNSPEC, socket.SOCK_STREAM
+            ):
+                af, socktype, proto, canonname, sa = res
                 try:
-                    connection_ = socket.socket(socket.AF_INET6)
-                except socket.error:
-                    raise Exception("Error creating socket for {host_addr}".format(host_addr=host_addr))
+                    conn_ = socket.socket(af, socktype, proto)
+                except OSError as msg:
+                    conn_ = None
+                    continue
+                break
+
+            if conn_ is None:
+                raise Exception(
+                    "Error creating socket for {host_addr}".format(host_addr=host_addr)
+                )
             if self.socket_wrapper:
-                connection = self.socket_wrapper(connection_)
+                connection = self.socket_wrapper(conn_)
             else:
-                connection = connection_
+                connection = conn_
 
             connection.settimeout(self.timeout)
 
