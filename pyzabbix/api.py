@@ -205,9 +205,9 @@ class ZabbixAPI(object):
         self.auth = None
 
         if self.use_authenticate:
-            self.auth = self.user.authenticate(user=user, password=password)
+            self.auth = self.user.authenticate(username=user, password=password)
         else:
-            self.auth = self.user.login(user=user, password=password)
+            self.auth = self.user.login(username=user, password=password)
 
     def _logout(self):
         """Do logout from zabbix server."""
