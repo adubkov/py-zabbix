@@ -25,13 +25,8 @@ import socket
 import struct
 import re
 
-# For python 2 and 3 compatibility
-try:
-    from StringIO import StringIO
-    import ConfigParser as configparser
-except ImportError:
-    from io import StringIO
-    import configparser
+from io import StringIO
+import configparser
 
 from .logger import NullHandler
 
@@ -225,14 +220,8 @@ class ZabbixSender(object):
 
         params = {}
 
-        try:
-            # python2
-            args = inspect.getargspec(
-                configparser.RawConfigParser.__init__).args
-        except ValueError:
-            # python3
-            args = inspect.getfullargspec(
-                configparser.RawConfigParser.__init__).kwonlyargs
+        args = inspect.getfullargspec(
+            configparser.RawConfigParser.__init__).kwonlyargs
 
         if 'strict' in args:
             params['strict'] = False
