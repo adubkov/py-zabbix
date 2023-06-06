@@ -23,6 +23,7 @@ import os
 import ssl
 import sys
 import base64
+from packaging.version import Version
 
 # For Python 2 and 3 compatibility
 try:
@@ -196,7 +197,13 @@ class ZabbixAPI(object):
 
         logger.debug("ZabbixAPI.login({0},{1})".format(user, HideSensitiveService.HIDEMASK))
 
-        self.auth = self.user.login(username=user, password=password)
+        api_version = Version(self.apiinfo.version())
+
+        # 5.4.0 was the first version of Zabbix to change the user param in the login method
+        if api_version and api_version < Version("5.4.0"):
+            self.auth = self.user.login(user=user, password=password)
+        else:
+            self.auth = self.user.login(username=user, password=password)
 
     def _logout(self):
         """Do logout from zabbix server."""
