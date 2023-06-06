@@ -137,10 +137,6 @@ class ZabbixAPI(object):
     :param url: URL to zabbix api. Default: `ZABBIX_URL` or
         `https://localhost/zabbix`
 
-    :type use_authenticate: bool
-    :param use_authenticate: Use `user.authenticate` method if `True` else
-        `user.login`.
-
     :type use_basic_auth: bool
     :param use_basic_auth: Using basic auth if `True`
 
@@ -165,14 +161,12 @@ class ZabbixAPI(object):
     >>> z.do_request('host.getobjects', {'status': 1})
     """
 
-    def __init__(self, url=None, use_authenticate=False, use_basic_auth=False, user=None,
-                 password=None):
+    def __init__(self, url=None, use_basic_auth=False, user=None, password=None):
 
         url = url or os.environ.get('ZABBIX_URL') or 'https://localhost/zabbix'
         user = user or os.environ.get('ZABBIX_USER') or 'Admin'
         password = password or os.environ.get('ZABBIX_PASSWORD') or 'zabbix'
 
-        self.use_authenticate = use_authenticate
         self.use_basic_auth = use_basic_auth
         self.auth = None
         self.url = url + '/api_jsonrpc.php'
@@ -202,12 +196,7 @@ class ZabbixAPI(object):
 
         logger.debug("ZabbixAPI.login({0},{1})".format(user, HideSensitiveService.HIDEMASK))
 
-        self.auth = None
-
-        if self.use_authenticate:
-            self.auth = self.user.authenticate(user=user, password=password)
-        else:
-            self.auth = self.user.login(user=user, password=password)
+        self.auth = self.user.login(username=user, password=password)
 
     def _logout(self):
         """Do logout from zabbix server."""
