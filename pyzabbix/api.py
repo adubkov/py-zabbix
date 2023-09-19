@@ -23,6 +23,7 @@ import os
 import ssl
 import sys
 import base64
+from packaging.version import Version
 
 # For Python 2 and 3 compatibility
 try:
@@ -52,7 +53,7 @@ class ZabbixAPIException(Exception):
         super(Exception, self).__init__(*args)
         if len(args) == 1 and isinstance(args[0], dict):
             self.error = args[0]
-            self.error['json'] = HideSensitiveService.hide_sensitive(self.error['json'])
+            self.error['json'] = self.error['json']
             self.message = self.error['message']
             self.code = self.error['code']
             self.data = self.error['data']
@@ -137,10 +138,6 @@ class ZabbixAPI(object):
     :param url: URL to zabbix api. Default: `ZABBIX_URL` or
         `https://localhost/zabbix`
 
-    :type use_authenticate: bool
-    :param use_authenticate: Use `user.authenticate` method if `True` else
-        `user.login`.
-
     :type use_basic_auth: bool
     :param use_basic_auth: Using basic auth if `True`
 
@@ -165,19 +162,21 @@ class ZabbixAPI(object):
     >>> z.do_request('host.getobjects', {'status': 1})
     """
 
-    def __init__(self, url=None, use_authenticate=False, use_basic_auth=False, user=None,
-                 password=None):
+    def __init__(self, url=None, use_basic_auth=False, user=None, password=None, authtoken=None):
 
         url = url or os.environ.get('ZABBIX_URL') or 'https://localhost/zabbix'
         user = user or os.environ.get('ZABBIX_USER') or 'Admin'
         password = password or os.environ.get('ZABBIX_PASSWORD') or 'zabbix'
 
-        self.use_authenticate = use_authenticate
         self.use_basic_auth = use_basic_auth
         self.auth = None
         self.url = url + '/api_jsonrpc.php'
         self.base64_cred = self.cred_to_base64(user, password) if self.use_basic_auth else None
         self._login(user, password)
+        if authtoken:
+            self.auth = authtoken
+        else:
+            self._login(user, password)
         logger.debug("JSON-PRC Server: %s", self.url)
 
     def __getattr__(self, name):
@@ -200,14 +199,15 @@ class ZabbixAPI(object):
         :param password: Zabbix user password
         """
 
-        logger.debug("ZabbixAPI.login({0},{1})".format(user, HideSensitiveService.HIDEMASK))
+        logger.debug("ZabbixAPI.login({0},{1})".format(user, password))
 
-        self.auth = None
+        api_version = Version(self.apiinfo.version())
 
-        if self.use_authenticate:
-            self.auth = self.user.authenticate(user=user, password=password)
-        else:
+        # 5.4.0 was the first version of Zabbix to change the user param in the login method
+        if api_version and api_version < Version("5.4.0"):
             self.auth = self.user.login(user=user, password=password)
+        else:
+            self.auth = self.user.login(username=user, password=password)
 
     def _logout(self):
         """Do logout from zabbix server."""
@@ -235,7 +235,7 @@ class ZabbixAPI(object):
         :return: str
         """
         base64string = base64.b64encode('{}:{}'.format(user, password).encode())
-        return base64string.decode()
+        return base64string.decode(errors='ignore')
 
     def api_version(self):
         """Return version of server Zabbix API.
@@ -290,7 +290,7 @@ class ZabbixAPI(object):
 
         try:
             res = urlopen(req)
-            res_str = res.read().decode('utf-8')
+            res_str = res.read().decode('utf-8', errors='ignore')
             res_json = json.loads(res_str)
         except ValueError as e:
             raise ZabbixAPIException("Unable to parse json: %s" % e.message)
