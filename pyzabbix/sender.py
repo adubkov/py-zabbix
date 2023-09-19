@@ -215,7 +215,10 @@ class ZabbixSender(object):
         """
 
         if config_file and isinstance(config_file, bool):
-            config_file = '/etc/zabbix/zabbix_agentd.conf'
+            zbxcfgs = ['C:/Zabbix/zabbix_agentd.conf','C:/Program Files/Zabbix Agent/zabbix_agentd.conf', '/etc/zabbix/zabbix_agentd.conf', '/etc/zabbix/zabbix_agent2.conf']
+            for zbxcfg in zbxcfgs:
+                if (os.path.exists(zbxcfg) and os.path.isfile(zbxcfg)):
+                    config_file = zbxcfg
 
         logger.debug("Used config: %s", config_file)
 
