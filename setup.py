@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import pip
+pip.main(['install', 'packaging'])
 from setuptools import setup
 from pyzabbix.version import __version__
 
@@ -12,7 +14,6 @@ setup(name='py-zabbix',
       author_email='alexey.dubkov@gmail.com',
       test_suite='tests',
       packages=['pyzabbix', 'zabbix'],
-      install_requires=['packaging'],
       tests_require=['mock'],
       classifiers=[
           'Development Status :: 5 - Production/Stable',
