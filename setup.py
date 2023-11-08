@@ -12,6 +12,7 @@ setup(name='py-zabbix',
       author_email='alexey.dubkov@gmail.com',
       test_suite='tests',
       packages=['pyzabbix', 'zabbix'],
+      install_requires=['packaging'],
       tests_require=['mock'],
       classifiers=[
           'Development Status :: 5 - Production/Stable',
