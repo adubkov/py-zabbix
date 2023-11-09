@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import pip
+pip.main(['install', 'packaging'])
 from setuptools import setup
 from pyzabbix.version import __version__
 
